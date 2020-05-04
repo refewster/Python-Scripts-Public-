@@ -5,7 +5,7 @@ Program: Downscaling Program (DRAFT)
 
 Author: Richard Fewster
 Start Date: 30/04/2020
-Most Recent Update: 30/04/2020
+Most Recent Update: 04/05/2020
 
 Program Purpose: To downscale and bias-correct CMIP6 climate outputs to the resolution of a higher-resolution observational dataset.
 Specifically:
@@ -65,17 +65,17 @@ print('(2) Processing CMIP files...')
 # open climate file as a new dset
 CMIP_dset = climate_file_ssp5
 # assign time to a new variable
-time =CMIP_dset['time']
+time =CMIP_dset['time'] # unnecessary?
 
 """
 (2.2) Slice to a specific time period. 
 """
 # Create a time slice - Set dates of interest
 # .sel(time = slice( start date, end date)
-time_slice = CMIP_dset.sel(time=slice("2090-01-16", "2099-12-16"))
+CMIP_slice = CMIP_dset.sel(time=slice("2090-01-16", "2099-12-16"), lat=slice(50., 90.), lon=slice(0., 360.)) # check lon is 0-360 not -180-180
 # Average all tas values in that time period (object = time_slice)
 # Produces a slice of mean surface temperature in kelvin
-CMIP_slice_K = time_slice['tas'].mean('time',keep_attrs=True)
+CMIP_mean_K = CMIP_slice['tas'].mean('time',keep_attrs=True)
 # View some results
 #clim_slice_K[:3]
 
@@ -83,7 +83,7 @@ CMIP_slice_K = time_slice['tas'].mean('time',keep_attrs=True)
 (2.3) Convert temperature data from Kelvin to Celsius
 """
 # Convert from Kelvin to Celsius
-CMIP_slice_C = CMIP_slice_K-273.15
+CMIP_mean_C = CMIP_mean_K-273.15
 
 ########################################################################################################
 """
@@ -108,10 +108,10 @@ print('Min land area (CMIP mask):', land_perc.data.min(), '%') # check that min 
 """
 print('(3.2) Apply CMIP land-sea mask...')
 
-CMIP_land_K = CMIP_slice_K.where(land_perc.data > 50.) # selects all grid cells where land % is less than 50 %
+CMIP_land_K = CMIP_mean_K.where(land_perc.data > 50.) # selects all grid cells where land % is less than 50 %
 #numpy added a np.where function that allows us to simply use a logical command
 
-CMIP_land_C = CMIP_slice_C.where(land_perc.data > 50.) # selects all grid cells where land % is less than 50 %
+CMIP_land_C = CMIP_mean_C.where(land_perc.data > 50.) # selects all grid cells where land % is less than 50 %
 #numpy added a np.where function that allows us to simply use a logical command
 
 ########################################################################################################
@@ -167,13 +167,38 @@ STEP 6: EXTRAPOLATION
 STEP 7: BIAS CORRECTION
 """
 ########################################################################################################
+"""
+(7.3) Variable formatting
+"""
+#CMIP_fut_tmp = 
+#CMIP_hist_tmp
+#CRU_tmp =
+
+#CMIP_fut_pre = 
+#CMIP_hist_pre =
+#CRU_pre = 
 
 
+"""
+(7.2) Temperature Bias correction
 
+BCor_Temp = (CMIP_fut_tmp - CMIP_hist_tmp) + CRU_tmp
+"""
+# Replace CRU dummy variables with CMIP equivalents
+BCor_Temp = (CRU_fut_tmp - CRU_hist_tmp) + CRU_tmp
 
+"""
+(7.3) Precipitation Bias correction
 
-
-
+BCor_Pre = (CRU_pre / CMIP_hist_pre) * CMIP_fut_pre
+"""
+# Replace CRU dummy variables with CMIP equivalents
+alpha = CRU_pre / CRU_hist_pre
+# Set limits for alpha
+alpha = xr.where(a < 0.25, 0.25, a)
+alpha_ltd = xr.where(alpha > 4.0, 4.0, a)
+# Apply the limited alpha coefficient to bias correct future precipitation
+BCor_Pre = alpha_ltd * CRU_fut_pre
 
 
 ########################################################################################################
