@@ -94,11 +94,11 @@ pre_ssp5_slice = pre_file_ssp5.sel(time=slice("2090-01-16", "2099-12-16"), lat=s
 # Time variable already returning monthly values, need to find way to average these for each month (e.g. all Januarys, Februarys, etc.)
 
 # Temperature
-#tas_hist_mean_monthly_C =
-#tas_ssp1_mean_monthly_C =
-#tas_ssp2_mean_monthly_C =
-#tas_ssp3_mean_monthly_C =
-#tas_ssp5_mean_monthly_C =
+#tas_hist_mean_monthly_K =
+#tas_ssp1_mean_monthly_K =
+#tas_ssp2_mean_monthly_K =
+#tas_ssp3_mean_monthly_K =
+#tas_ssp5_mean_monthly_K =
 
 #Precipitation
 #pre_hist_mean_monthly =
@@ -111,11 +111,11 @@ pre_ssp5_slice = pre_file_ssp5.sel(time=slice("2090-01-16", "2099-12-16"), lat=s
 (2.2) Convert climate data into desired units
 """
 # Convert from Kelvin to Celsius
-# e.g. tas_hist_mean_monthly_C = tas_hist_mean_monthly_K-273.15
-# e.g. tas_ssp1_mean_monthly_C = tas_ssp1_mean_monthly_K-273.15
-# e.g. tas_ssp2_mean_monthly_C = tas_ssp2_mean_monthly_K-273.15
-# e.g. tas_ssp3_mean_monthly_C = tas_ssp3_mean_monthly_K-273.15
-# e.g. tas_ssp5_mean_monthly_C = tas_ssp5_mean_monthly_K-273.15
+tas_hist_mean_monthly_C = tas_hist_mean_monthly_K-273.15
+tas_ssp1_mean_monthly_C = tas_ssp1_mean_monthly_K-273.15
+tas_ssp2_mean_monthly_C = tas_ssp2_mean_monthly_K-273.15
+tas_ssp3_mean_monthly_C = tas_ssp3_mean_monthly_K-273.15
+tas_ssp5_mean_monthly_C = tas_ssp5_mean_monthly_K-273.15
 
 # Convert from mm/second to mm per month
 # 60 x 60 x 24 = 86,400 (one day)
@@ -180,7 +180,7 @@ STEP 4: IMPORT MODERN OBSERVATIONAL DATASET (CRU TS 4.03)
 print('(4.1) Import CRU TS 4.03 datasets...')
 
 # Load in observational temperature dataset
-CRU_tmp_dset = xr.open_mfdataset(r"G:\Climate_Data\3_Observational_data\CRU data\cru_ts4.03.1901.2018.tmp.dat.nc", combine='by_coords')
+CRU_tmp_dset = xr.open_mfdataset(r"G:\Climate_Data\3_Observational_data\CRU data\CRU_TS_404\cru_ts4.04.1901.2019.tmp.dat.nc", combine='by_coords')
 # Load in observational precipitation dataset
 CRU_pre_dset = xr.open_mfdataset(r"G:\Climate_Data\3_Observational_data\CRU data\cru_ts4.03.1901.2018.pre.dat.nc", combine='by_coords')
 
@@ -264,6 +264,7 @@ SSP2_BCor_Pre = a_ltd * SSP2_fut_pre
 SSP3_BCor_Pre = a_ltd * SSP3_fut_pre
 SSP5_BCor_Pre = a_ltd * SSP5_fut_pre
 
+
 ########################################################################################################
 """
 STEP 8: APPLY OBSERVATIONAL LAND-SEA MASK
@@ -271,21 +272,23 @@ STEP 8: APPLY OBSERVATIONAL LAND-SEA MASK
 ########################################################################################################
 
 # (8.1) Create CRU land-sea mask
-
+CRU_tmp_dset = xr.open_mfdataset(r"G:\Climate_Data\3_Observational_data\CRU data\CRU_TS_404\cru_ts4.04.1901.2019.tmp.dat.nc", combine='by_coords')
+CRU_mask = CRU_tmp_dset['tmp'] # create single variable file
 
 # (8.2) Apply CRU land sea mask to downscaled CMIP data
 
 # Mask temperature files...
-# SSP1_BCor_Temp_land = 
-# SSP2_BCor_Temp_land = 
-# SSP3_BCor_Temp_land = 
-# SSP5_BCor_Temp_land = 
+SSP1_BCor_Temp_land = SSP1_BCor_Temp.where(CRU_Mask.data != NaN) # Keeps only grid cells within the CRU TS 4.04 land mask 
+SSP2_BCor_Temp_land = SSP2_BCor_Temp.where(CRU_Mask.data != NaN)
+SSP3_BCor_Temp_land = SSP3_BCor_Temp.where(CRU_Mask.data != NaN) 
+SSP5_BCor_Temp_land = SSP5_BCor_Temp.where(CRU_Mask.data != NaN) 
 
 # Mask precipitation files...
-# SSP1_BCor_Pre_land =
-# SSP2_BCor_Pre_land = 
-# SSP3_BCor_Pre_land = 
-# SSP5_BCor_Pre_land =
+SSP1_BCor_Pre_land = SSP1_BCor_Pre.where(CRU_Mask.data != NaN)
+SSP2_BCor_Pre_land = SSP2_BCor_Pre.where(CRU_Mask.data != NaN)
+SSP3_BCor_Pre_land = SSP3_BCor_Pre.where(CRU_Mask.data != NaN)
+SSP5_BCor_Pre_land = SSP5_BCor_Pre.where(CRU_Mask.data != NaN)
+
 
 ########################################################################################################
 """
