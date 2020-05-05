@@ -270,14 +270,22 @@ STEP 8: APPLY OBSERVATIONAL LAND-SEA MASK
 """
 ########################################################################################################
 
+# (8.1) Create CRU land-sea mask
 
 
+# (8.2) Apply CRU land sea mask to downscaled CMIP data
 
+# Mask temperature files...
+# SSP1_BCor_Temp_land = 
+# SSP2_BCor_Temp_land = 
+# SSP3_BCor_Temp_land = 
+# SSP5_BCor_Temp_land = 
 
-
-
-
-
+# Mask precipitation files...
+# SSP1_BCor_Pre_land =
+# SSP2_BCor_Pre_land = 
+# SSP3_BCor_Pre_land = 
+# SSP5_BCor_Pre_land =
 
 ########################################################################################################
 """
