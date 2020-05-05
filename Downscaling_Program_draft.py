@@ -5,7 +5,7 @@ Program: Downscaling Program (DRAFT)
 
 Author: Richard Fewster
 Start Date: 30/04/2020
-Most Recent Update: 04/05/2020
+Most Recent Update: 05/05/2020
 
 Program Purpose: To downscale and bias-correct CMIP6 climate outputs to the resolution of a higher-resolution observational dataset.
 Specifically:
@@ -41,22 +41,21 @@ from netCDF4 import Dataset, date2index, num2date, date2num
 (1.2) Create a list of required netCDF files.
 """
 print('(1.2) Importing data files...')
-# Mask file
+# CMIP land-sea mask file
 mask_file = r"G:\Climate_Data\1_CMIP_DATA\2_CMIP6\1_NorESM2_MM\land\sftlf_fx_NorESM2-MM_historical_r1i1p1f1_gn.nc"
 
-#Tas files
-tas_file_hist = xr.open_mfdataset(r"G:\Climate_Data\1_CMIP_DATA\2_CMIP6\1_NorESM2_MM\tmp\historical\*.nc", combine='by_coords')
 # to combine all netcdf files together use xr.open_mfdataset(path, combine = 'by coords') <- reorders the arrays before concatenating.
 # use * at end of path name to merge all files ending in .nc in the specifed folder
+
+# Temperature files
+tas_file_hist = xr.open_mfdataset(r"G:\Climate_Data\1_CMIP_DATA\2_CMIP6\1_NorESM2_MM\tmp\historical\*.nc", combine='by_coords')
 tas_file_ssp1 = xr.open_mfdataset(r"G:\Climate_Data\1_CMIP_DATA\2_CMIP6\1_NorESM2_MM\tmp\ssp1_26\*.nc", combine='by_coords')
 tas_file_ssp2 = xr.open_mfdataset(r"G:\Climate_Data\1_CMIP_DATA\2_CMIP6\1_NorESM2_MM\tmp\ssp2_45\*.nc", combine='by_coords')
 tas_file_ssp3 = xr.open_mfdataset(r"G:\Climate_Data\1_CMIP_DATA\2_CMIP6\1_NorESM2_MM\tmp\ssp3_70\*.nc", combine='by_coords')
 tas_file_ssp5 = xr.open_mfdataset(r"G:\Climate_Data\1_CMIP_DATA\2_CMIP6\1_NorESM2_MM\tmp\ssp5_85\*.nc", combine='by_coords')
 
-# Pre files
+# Precipitation files
 pre_file_hist = xr.open_mfdataset(r"G:\Climate_Data\1_CMIP_DATA\2_CMIP6\1_NorESM2_MM\pre\historical\*.nc", combine='by_coords')
-# to combine all netcdf files together use xr.open_mfdataset(path, combine = 'by coords') <- reorders the arrays before concatenating.
-# use * at end of path name to merge all files ending in .nc in the specifed folder
 pre_file_ssp1 = xr.open_mfdataset(r"G:\Climate_Data\1_CMIP_DATA\2_CMIP6\1_NorESM2_MM\pre\ssp1_26\*.nc", combine='by_coords')
 pre_file_ssp2 = xr.open_mfdataset(r"G:\Climate_Data\1_CMIP_DATA\2_CMIP6\1_NorESM2_MM\pre\ssp2_45\*.nc", combine='by_coords')
 pre_file_ssp3 = xr.open_mfdataset(r"G:\Climate_Data\1_CMIP_DATA\2_CMIP6\1_NorESM2_MM\pre\ssp3_70\*.nc", combine='by_coords')
@@ -69,32 +68,66 @@ STEP 2: IMPORT CMIP CLIMATE DATA AND CALCULATE CLIMATE AVERAGES.
 ########################################################################################################
 
 """
-(2.1) Load in the CMIP climate data and assign the time variabe to a new object.
+(2.1) Slice CMIP data to desired time period and study area.
 """
-print('(2) Processing CMIP files...')
-
-# open climate file as a new dset
-CMIP_dset = tas_file_ssp5
-# assign time to a new variable
-time =CMIP_dset['time'] # unnecessary?
-
-"""
-(2.2) Slice to a specific time period. 
-"""
+print('(2.1) Slicing CMIP files...')
 # Create a time slice - Set dates of interest
 # .sel(time = slice( start date, end date)
-CMIP_slice = CMIP_dset.sel(time=slice("2090-01-16", "2099-12-16"), lat=slice(50., 90.), lon=slice(0., 360.)) # check lon is 0-360 not -180-180
-# Average all tas values in that time period (object = time_slice)
-# Produces a slice of mean surface temperature in kelvin
-CMIP_mean_K = CMIP_slice['tas'].mean('time',keep_attrs=True)
-# View some results
-#clim_slice_K[:3]
+
+# Temperature slices
+tas_ssp5_slice = tas_file_hist.sel(time=slice("2090-01-16", "2099-12-16"), lat=slice(50., 90.)) 
+tas_ssp5_slice = tas_file_ssp1.sel(time=slice("2090-01-16", "2099-12-16"), lat=slice(50., 90.)) 
+tas_ssp5_slice = tas_file_ssp2.sel(time=slice("2090-01-16", "2099-12-16"), lat=slice(50., 90.)) 
+tas_ssp5_slice = tas_file_ssp3.sel(time=slice("2090-01-16", "2099-12-16"), lat=slice(50., 90.)) 
+tas_ssp5_slice = tas_file_ssp5.sel(time=slice("2090-01-16", "2099-12-16"), lat=slice(50., 90.)) 
+
+# Precipitation files
+pre_ssp5_slice = pre_file_hist.sel(time=slice("2090-01-16", "2099-12-16"), lat=slice(50., 90.)) 
+pre_ssp5_slice = pre_file_ssp1.sel(time=slice("2090-01-16", "2099-12-16"), lat=slice(50., 90.)) 
+pre_ssp5_slice = pre_file_ssp2.sel(time=slice("2090-01-16", "2099-12-16"), lat=slice(50., 90.)) 
+pre_ssp5_slice = pre_file_ssp3.sel(time=slice("2090-01-16", "2099-12-16"), lat=slice(50., 90.)) 
+pre_ssp5_slice = pre_file_ssp5.sel(time=slice("2090-01-16", "2099-12-16"), lat=slice(50., 90.)) 
 
 """
-(2.3) Convert temperature data from Kelvin to Celsius
+(2.2) Average climate values for each month
+"""
+# Time variable already returning monthly values, need to find way to average these for each month (e.g. all Januarys, Februarys, etc.)
+
+# Temperature
+#tas_hist_mean_monthly_C =
+#tas_ssp1_mean_monthly_C =
+#tas_ssp2_mean_monthly_C =
+#tas_ssp3_mean_monthly_C =
+#tas_ssp5_mean_monthly_C =
+
+#Precipitation
+#pre_hist_mean_monthly =
+#pre_ssp1_mean_monthly =
+#pre_ssp2_mean_monthly =
+#pre_ssp3_mean_monthly =
+#pre_ssp5_mean_monthly =
+
+"""
+(2.2) Convert climate data into desired units
 """
 # Convert from Kelvin to Celsius
-CMIP_mean_C = CMIP_mean_K-273.15
+# e.g. tas_hist_mean_monthly_C = tas_hist_mean_monthly_K-273.15
+# e.g. tas_ssp1_mean_monthly_C = tas_ssp1_mean_monthly_K-273.15
+# e.g. tas_ssp2_mean_monthly_C = tas_ssp2_mean_monthly_K-273.15
+# e.g. tas_ssp3_mean_monthly_C = tas_ssp3_mean_monthly_K-273.15
+# e.g. tas_ssp5_mean_monthly_C = tas_ssp5_mean_monthly_K-273.15
+
+# Convert from mm/second to mm per month
+# 60 x 60 x 24 = 86,400 (one day)
+# 86,400 x 365 = 31,556,926 (one year)
+# 31,556,926 / 12 = 2,629,743.8 (estimate for one month)
+#pre_hist_mean_monthly_mm = pre_hist_mean_monthly * 2,629,743.8 
+#pre_ssp1_mean_monthly_mm = pre_ssp1_mean_monthly * 2,629,743.8 
+#pre_ssp2_mean_monthly_mm = pre_ssp2_mean_monthly * 2,629,743.8 
+#pre_ssp3_mean_monthly_mm = pre_ssp3_mean_monthly * 2,629,743.8 
+#pre_ssp5_mean_monthly_mm = pre_ssp5_mean_monthly * 2,629,743.8 
+
+# Better way of doing this?? ^^
 
 ########################################################################################################
 """
@@ -106,10 +139,10 @@ STEP 3: MASK CMIP OCEANIC CELLS
 (3.1) Use xarray to assign the land cover percentage data for the CMIP model to a new object.
 """
 print('(3.1) Assign CMIP land-sea mask...')
-
+# sftlf is the standardised variable name for land percentage cover
 mask_dset = xr.open_dataset(mask_file) #Use xarray to open the mask dataset
 land_perc = mask_dset['sftlf'] # assign the land percentage variable to a new object
-# sftlf is the standardised term for land percentage cover
+
 
 print('Max land area (CMIP mask):', land_perc.data.max(), '%') # check that max land area is 100 %
 print('Min land area (CMIP mask):', land_perc.data.min(), '%') # check that min land area is 0 %
@@ -117,13 +150,23 @@ print('Min land area (CMIP mask):', land_perc.data.min(), '%') # check that min 
 """
 (3.2) Mask out ocean in CMIP datasets (i.e. selecting only grid cells with > 50 % land)
 """
-print('(3.2) Apply CMIP land-sea mask...')
+print('(3.2) Apply land-sea mask...')
+#numpy includes a np.where function that allows us to simply use a logical command
 
-CMIP_land_K = CMIP_mean_K.where(land_perc.data > 50.) # selects all grid cells where land % is less than 50 %
-#numpy added a np.where function that allows us to simply use a logical command
+# Mask out temperature data
+tas_hist_land_C = tas_hist_mean_monthly_C.where(land_perc.data > 50.) # selects all grid cells where land % is less than 50 %
+tas_ssp1_land_C = tas_ssp1_mean_monthly_C.where(land_perc.data > 50.) # selects all grid cells where land % is less than 50 %
+tas_ssp2_land_C = tas_ssp2_mean_monthly_C.where(land_perc.data > 50.) # selects all grid cells where land % is less than 50 %
+tas_ssp3_land_C = tas_ssp3_mean_monthly_C.where(land_perc.data > 50.) # selects all grid cells where land % is less than 50 %
+tas_ssp5_land_C = tas_ssp5_mean_monthly_C.where(land_perc.data > 50.) # selects all grid cells where land % is less than 50 %
 
-CMIP_land_C = CMIP_mean_C.where(land_perc.data > 50.) # selects all grid cells where land % is less than 50 %
-#numpy added a np.where function that allows us to simply use a logical command
+# Mask out preciptiation data
+pre_hist_land_C = pre_hist_mean_monthly_mm.where(land_perc.data > 50.) # selects all grid cells where land % is less than 50 %
+pre_ssp1_land_C = pre_ssp1_mean_monthly_mm.where(land_perc.data > 50.) # selects all grid cells where land % is less than 50 %
+pre_ssp2_land_C = pre_ssp2_mean_monthly_mm.where(land_perc.data > 50.) # selects all grid cells where land % is less than 50 %
+pre_ssp3_land_C = pre_ssp3_mean_monthly_mm.where(land_perc.data > 50.) # selects all grid cells where land % is less than 50 %
+pre_ssp5_land_C = pre_ssp5_mean_monthly_mm.where(land_perc.data > 50.) # selects all grid cells where land % is less than 50 %
+
 
 ########################################################################################################
 """
@@ -141,9 +184,12 @@ CRU_tmp_dset = xr.open_mfdataset(r"G:\Climate_Data\3_Observational_data\CRU data
 # Load in observational precipitation dataset
 CRU_pre_dset = xr.open_mfdataset(r"G:\Climate_Data\3_Observational_data\CRU data\cru_ts4.03.1901.2018.pre.dat.nc", combine='by_coords')
 
-
-
-
+"""
+(4.2) Slicing observational data.
+"""
+# REMEMBER: CRU datasets use -179.75 -> 179.75 for lon
+CRU_tmp_slice = CRU_tmp_dset.sel(time=slice("1961-01-16", "1990-12-16"), lat=slice(50., 90.)) # Slice to match study region of SSP files
+CRU_pre_slice = CRU_pre_dset.sel(time=slice("1961-01-16", "1990-12-16"), lat=slice(50., 90.)) # Slice to match study region of SSP files
 
 
 ########################################################################################################
@@ -196,21 +242,27 @@ STEP 7: BIAS CORRECTION
 BCor_Temp = (CMIP_fut_tmp - CMIP_hist_tmp) + CRU_tmp
 """
 # Replace CRU dummy variables with CMIP equivalents
-BCor_Temp = (CRU_fut_tmp - CRU_hist_tmp) + CRU_tmp
+SSP1_BCor_Temp = (SSP1_fut_tmp - CMIP_hist_tmp) + CRU_tmp
+SSP2_BCor_Temp = (SSP2_fut_tmp - CMIP_hist_tmp) + CRU_tmp
+SSP3_BCor_Temp = (SSP3_fut_tmp - CMIP_hist_tmp) + CRU_tmp
+SSP5_BCor_Temp = (SSP5_fut_tmp - CMIP_hist_tmp) + CRU_tmp
 
 """
 (7.3) Precipitation Bias correction
 
 BCor_Pre = (CRU_pre / CMIP_hist_pre) * CMIP_fut_pre
 """
-# Replace CRU dummy variables with CMIP equivalents
-alpha = CRU_pre / CRU_hist_pre
-# Set limits for alpha
-alpha = xr.where(a < 0.25, 0.25, a)
-alpha_ltd = xr.where(alpha > 4.0, 4.0, a)
-# Apply the limited alpha coefficient to bias correct future precipitation
-BCor_Pre = alpha_ltd * CRU_fut_pre
+# Calculate alpha...
+a = CRU_pre / CMIP_hist_pre
+# Set limits for alpha...
+a = xr.where(a < 0.25, 0.25, a)
+a_ltd = xr.where(a > 4.0, 4.0, a)
 
+# Apply the limited alpha coefficient to bias correct future precipitation
+SSP1_BCor_Pre = a_ltd * SSP1_fut_pre
+SSP2_BCor_Pre = a_ltd * SSP2_fut_pre
+SSP3_BCor_Pre = a_ltd * SSP3_fut_pre
+SSP5_BCor_Pre = a_ltd * SSP5_fut_pre
 
 ########################################################################################################
 """
@@ -237,18 +289,31 @@ STEP XX: OUTPUT RESULTS
 (X.1) Exporting the results to netcdf format
 """
 print('Data export to NetCDF...')
-# Export the land only data in Kelvin
-land_dataDIR_K = r'G:\Climate_Data\4_Python_Scripting\2_RF\3_NorESM2_MM\Applying_land_sea_mask\clim_tas_ssp5_2090_2099_K_land.nc'
-CMIP_land_K.to_netcdf(land_dataDIR_K)
+# Temperature files
+DIR = r'G:\Climate_Data\1_CMIP_DATA\2_CMIP6\1_NorESM2_MM\downscaled_outputs\NorESM2_MM_downscaled_tas_'
+SSP1_BCor_Temp_land.to_netcdf(DIR+'SSP1.nc')
+SSP2_BCor_Temp_land.to_netcdf(DIR+'SSP2.nc')
+SSP3_BCor_Temp_land.to_netcdf(DIR+'SSP3.nc')
+SSP5_BCor_Temp_land.to_netcdf(DIR+'SSP5.nc')
 
-# Export the land only data in Celsius
-land_dataDIR_C = r'G:\Climate_Data\4_Python_Scripting\2_RF\3_NorESM2_MM\Applying_land_sea_mask\clim_tas_ssp5_2090_2099_C_land.nc'
-CMIP_land_C.to_netcdf(land_dataDIR_C)
+# Precipitation files
+DIR = r'G:\Climate_Data\1_CMIP_DATA\2_CMIP6\1_NorESM2_MM\downscaled_outputs\NorESM2_MM_downscaled_pre_'
+SSP1_BCor_Pre_land.to_netcdf(DIR+'SSP1.nc')
+SSP2_BCor_Pre_land.to_netcdf(DIR+'SSP2.nc')
+SSP3_BCor_Pre_land.to_netcdf(DIR+'SSP3.nc')
+SSP5_BCor_Pre_land.to_netcdf(DIR+'SSP5.nc')
 
 """
-(X.2) Output climate values as .csv
+(X.2) Output monthly climate values for each 0.5 degree grid cell as .csv
 """
 #print('Data export to .csv...')
+
+
+
+
+
+
+
 
 #########################################
 print('End.')
