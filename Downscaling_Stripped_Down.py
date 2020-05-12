@@ -5,7 +5,7 @@ Program: Downscaling Program (DRAFT)
 
 Author: Richard Fewster
 Start Date: 30/04/2020
-Most Recent Update: 11/05/2020
+Most Recent Update: 12/05/2020
 
 """
 """
@@ -24,7 +24,10 @@ import pandas as pd
 import re
 from netCDF4 import Dataset, date2index, num2date, date2num
 import scipy
+import gridfill
+import iris
 
+print('Import complete')
 
 """
 (1.2) Create a list of required netCDF files.
@@ -34,9 +37,12 @@ print('(1.2) Importing data files...')
 mask_file = r"G:\Climate_Data\1_CMIP_DATA\2_CMIP6\2_CanESM5\land\sftlf_fx_CanESM5_hist-volc_r1i1p1f1_gn.nc"
 # Temperature files
 tas_file_hist = r"G:\Climate_Data\1_CMIP_DATA\2_CMIP6\2_CanESM5\tmp\historical\tas_Amon_CanESM5_historical_r1i1p1f1_gn_185001-201412.nc"
-tas_file_ssp1 = r"G:\Climate_Data\1_CMIP_DATA\2_CMIP6\2_CanESM5\tmp\ssp1_26\tas_Amon_CanESM5_ssp126_r1i1p1f1_gn_201501-210012.nc"
 tas_file_hist = xr.open_dataset(tas_file_hist)
+
+tas_file_ssp1 = r"G:\Climate_Data\1_CMIP_DATA\2_CMIP6\2_CanESM5\tmp\ssp1_26\tas_Amon_CanESM5_ssp126_r1i1p1f1_gn_201501-210012.nc"
 tas_file_ssp1 = xr.open_dataset(tas_file_ssp1)
+print('Step 1 complete')
+
 ########################################################################################################
 """
 STEP 2: IMPORT CMIP CLIMATE DATA AND CALCULATE CLIMATE AVERAGES.
@@ -47,7 +53,7 @@ STEP 2: IMPORT CMIP CLIMATE DATA AND CALCULATE CLIMATE AVERAGES.
 (2.1) Slice CMIP data to desired time period and study area.
 """
 # Temperature slices
-tas_hist_slice = tas_file_hist.sel(time=slice("1961-01-16", "1990-12-16"), lat=slice(50., 90.)) 
+tas_hist_slice = tas_file_hist.sel(time=slice("1961-01-16", "1990-12-16"), lat=slice(50., 90.))
 tas_ssp1_slice = tas_file_ssp1.sel(time=slice("2090-01-16", "2099-12-16"), lat=slice(50., 90.)) 
 
 """
@@ -66,6 +72,8 @@ tas_ssp1_mean_monthly_K = tas_ssp1_slice['tas'].mean('time',keep_attrs=True)
 tas_hist_mean_monthly_C = tas_hist_mean_monthly_K-273.15
 tas_ssp1_mean_monthly_C = tas_ssp1_mean_monthly_K-273.15
 
+print('Step 2 Complete')
+
 ########################################################################################################
 """
 STEP 3: MASK CMIP OCEANIC CELLS 
@@ -75,19 +83,31 @@ STEP 3: MASK CMIP OCEANIC CELLS
 """
 (3.1) Use xarray to assign the land cover percentage data for the CMIP model to a new object.
 """
+print('(3.1) Assign CMIP land-sea mask...')
 # sftlf is the standardised variable name for land percentage cover
 mask_dset = xr.open_dataset(mask_file)#Use xarray to open the mask dataset
 mask_dset_slice = mask_dset.sel(lat=slice(50., 90.)) 
 land_perc = mask_dset_slice['sftlf'] # assign the land percentage variable to a new object
 
+
+print('Max land area (CMIP mask):', land_perc.data.max(), '%') # check that max land area is 100 %
+print('Min land area (CMIP mask):', land_perc.data.min(), '%') # check that min land area is 0 %
+
 """
 (3.2) Mask out ocean in CMIP datasets (i.e. selecting only grid cells with > 50 % land)
 """
+print('(3.2) Apply land-sea mask...')
 #numpy includes a np.where function that allows us to simply use a logical command
 
 # Mask out temperature data
 tas_hist_land_C = tas_hist_mean_monthly_C.where(land_perc.data > 50.) # selects all grid cells where land % is less than 50 %
-tas_ssp1_land_C = tas_ssp1_mean_monthly_C.where(land_perc.data > 50.) # selects all grid cells where land % is less than 50 %
+#tas_ssp1_land_C = tas_ssp1_mean_monthly_C.where(land_perc.data > 50.) # selects all grid cells where land % is less than 50 %
+
+# Mask out preciptiation data
+#pre_hist_land_C = pre_hist_mean_monthly_mm.where(land_perc.data > 50.) # selects all grid cells where land % is less than 50 %
+#pre_ssp1_land_C = pre_ssp1_mean_monthly_mm.where(land_perc.data > 50.) # selects all grid cells where land % is less than 50 %
+
+print('Step 3 complete')
 
 ########################################################################################################
 """
@@ -98,17 +118,20 @@ STEP 4: IMPORT MODERN OBSERVATIONAL DATASET (CRU TS 4.03)
 """
 (4.1) Import CRU TS 4.03 data files
 """
+print('(4.1) Import CRU TS 4.03 datasets...')
+
 # Load in observational temperature dataset
 CRU_tmp_dset = xr.open_mfdataset(r"G:\Climate_Data\3_Observational_data\CRU data\CRU_TS_404\cru_ts4.04.1901.2019.tmp.dat.nc", combine='by_coords')
 # Load in observational precipitation dataset
-CRU_pre_dset = xr.open_mfdataset(r"G:\Climate_Data\3_Observational_data\CRU data\CRU_TS_404\cru_ts4.04.1901.2019.pre.dat.nc", combine='by_coords')
+#CRU_pre_dset = xr.open_mfdataset(r"G:\Climate_Data\3_Observational_data\CRU data\CRU_TS_404\cru_ts4.04.1901.2019.pre.dat.nc", combine='by_coords')
 
 """
-(4.2) Slicing observational data.
 """
 # REMEMBER: CRU datasets use -179.75 -> 179.75 for lon
 CRU_tmp_slice = CRU_tmp_dset.sel(time=slice("1961-01-16", "1990-12-16"), lat=slice(50., 90.)) # Slice to match study region of SSP files
-CRU_pre_slice = CRU_pre_dset.sel(time=slice("1961-01-16", "1990-12-16"), lat=slice(50., 90.)) # Slice to match study region of SSP files
+#CRU_pre_slice = CRU_pre_dset.sel(time=slice("1961-01-16", "1990-12-16"), lat=slice(50., 90.)) # Slice to match study region of SSP files
+
+print('Step 4 complete')
 
 ########################################################################################################
 """
@@ -121,20 +144,33 @@ Use Poisson Equation solver with overrelaxation to extrapolate terrestrial data 
 
 # Use grid fill to extrapolate over ocean
 # Can  install gridfill manually from https://github.com/ajdawson/gridfill
-from gridfill import fill
-# Create dictionary with settings for Poisson grid filling. Definitions:
-# eps = Tolerance for determining the solution complete.
-# relax = Relaxation constant. Usually 0.45 <= *relax* <= 0.6. Defaults to 0.6.
-# itermax = Maximum number of iterations of the relaxation scheme. Defaults to 100 iterations.
-# initzonal = If *False* missing values will be initialized to zero, if *True* missing values will be initialized to the zonal mean. Defaultsto *False*.
-# cyclic = Set to *False* if the x-coordinate of the grid is not cyclic, set to *True* if it is cyclic. Defaults to *False*.
-# verbose = If *True* information about algorithm performance will be printed to stdout, if *False* nothing is printed. Defaults to *False*.
-kw = dict(eps=1e-3, relax=0.6, itermax=2000, initzonal=True, cyclic=True, verbose=True)
+#from gridfill import fill
 
+# Create dictionary with settings for Poisson grid filling. Definitions:
+# eps = Tolerance for determining the solution complete. [1e-3]
+# relax = Relaxation constant. Usually 0.45 <= *relax* <= 0.6. Defaults to 0.6. [0.6]
+# itermax = Maximum number of iterations of the relaxation scheme. Defaults to 100 iterations. [2000]
+# initzonal = If *False* missing values will be initialized to zero, if *True* missing values will be initialized to the zonal mean. Defaultsto *False*. [True]
+# cyclic = Set to *False* if the x-coordinate of the grid is not cyclic, set to *True* if it is cyclic. Defaults to *False*. [Not used]
+# verbose = If *True* information about algorithm performance will be printed to stdout, if *False* nothing is printed. Defaults to *False*. [True]
+
+### ERROR ###
+#kw = dict(eps=1e-3, relax=0.6, itermax=2000, initzonal=True, cyclic=True, verbose=True)
 # Run the extrapolation
-# syntax = fill(gridded data, xdim (e.g. which # variable is x), ydim (e.g. which # variable is y), specification dictionary)
-filled, converged = fill(tas_hist_land_C, 1, 0, **kw)
-### ERROR##
+# Xarray syntax = fill(gridded data, xdim (e.g. which # variable is x), ydim (e.g. which # variable is y), specification dictionary)
+#filled, converged = fill(tas_hist_land_C, 1, 0, **kw)
+#filled, converged = fill(tas_hist_land_C, 1, 0, 0.01, cyclic=True)
+### ERROR ##
+
+# Try iris instead of xarray:
+tas_hist_land_Ciris = tas_hist_land_C.to_iris() # convert to Iris cube
+
+# don't know why cyclcic doesn't work --- need to check result of this! ---
+#tas_hist_land_Ciris_backfilled = gridfill.fill_cube(tas_hist_land_Ciris, 1e-3, 0.6, 2000, cyclic=True, initzonal=True, verbose=True)
+tas_hist_land_Ciris_backfilled = gridfill.fill_cube(tas_hist_land_Ciris, 1e-3, 0.6, 2000, initzonal=True, verbose=True)
+#print(tas_hist_land_Ciris_extrap)
+
+#print('Step 5 complete')
 
 ########################################################################################################
 """
@@ -142,15 +178,14 @@ STEP 6: REGRIDDING TO HIGHER RESOLUTION
 Base new grid on CRU grid (0.5 x 0.5 deg). Interpolate using bicubic spline.
 """
 
+# Convert back to xarray:
+tas_hist_land_C_backfilled = xr.DataArray.from_iris(tas_hist_land_Ciris_backfilled)
+
 # Sci.py method - currently doesn't work
-high_lon = CRU_tmp_slice.lon  # I'm assuming this is the correct notation and that xarray knows
-high_lat = CRU_tmp_slice.lat  # how to handle coordinates and metadata
-tas_hist_land_backfilled_high_C = tas_hist_land_backfilled_C.interp(lat=high_lat, lon=high_lon, method="cubic") # nearest and linear methods do work
+high_lon = CRU_tmp_slice.lon  
+high_lat = CRU_tmp_slice.lat  
 
-# Alternative using interp_like:
-# (will need to check if this works because don't know if metadata is passed correctly])
-# tas_hist_land_backfilled_high_C = tas_hist_land_backfilled_C.interp_like(CRU_tmp_slice, method="cubic")
-
+# tas_hist_land_backfilled_high_C = tas_hist_land_C_backfilled.interp(lat=high_lat, lon=high_lon, method="cubic") # nearest and linear methods do work
 
 ########################################################################################################
 """
