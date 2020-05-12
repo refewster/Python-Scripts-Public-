@@ -144,7 +144,6 @@ Use Poisson Equation solver with overrelaxation to extrapolate terrestrial data 
 
 # Use grid fill to extrapolate over ocean
 # Can  install gridfill manually from https://github.com/ajdawson/gridfill
-#from gridfill import fill
 
 # Create dictionary with settings for Poisson grid filling. Definitions:
 # eps = Tolerance for determining the solution complete. [1e-3]
@@ -154,23 +153,15 @@ Use Poisson Equation solver with overrelaxation to extrapolate terrestrial data 
 # cyclic = Set to *False* if the x-coordinate of the grid is not cyclic, set to *True* if it is cyclic. Defaults to *False*. [Not used]
 # verbose = If *True* information about algorithm performance will be printed to stdout, if *False* nothing is printed. Defaults to *False*. [True]
 
-### ERROR ###
-#kw = dict(eps=1e-3, relax=0.6, itermax=2000, initzonal=True, cyclic=True, verbose=True)
-# Run the extrapolation
-# Xarray syntax = fill(gridded data, xdim (e.g. which # variable is x), ydim (e.g. which # variable is y), specification dictionary)
-#filled, converged = fill(tas_hist_land_C, 1, 0, **kw)
-#filled, converged = fill(tas_hist_land_C, 1, 0, 0.01, cyclic=True)
-### ERROR ##
-
 # Try iris instead of xarray:
 tas_hist_land_Ciris = tas_hist_land_C.to_iris() # convert to Iris cube
+# Need to add a cyclic attribute to the iris cube itself
+cyclic = tas_hist_land_Ciris.coord('longitude').circular = True
 
-# don't know why cyclcic doesn't work --- need to check result of this! ---
 #tas_hist_land_Ciris_backfilled = gridfill.fill_cube(tas_hist_land_Ciris, 1e-3, 0.6, 2000, cyclic=True, initzonal=True, verbose=True)
 tas_hist_land_Ciris_backfilled = gridfill.fill_cube(tas_hist_land_Ciris, 1e-3, 0.6, 2000, initzonal=True, verbose=True)
-#print(tas_hist_land_Ciris_extrap)
 
-#print('Step 5 complete')
+print('Step 5 complete')
 
 ########################################################################################################
 """
