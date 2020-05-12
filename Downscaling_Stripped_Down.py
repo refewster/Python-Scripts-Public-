@@ -158,7 +158,6 @@ tas_hist_land_Ciris = tas_hist_land_C.to_iris() # convert to Iris cube
 # Need to add a cyclic attribute to the iris cube itself
 cyclic = tas_hist_land_Ciris.coord('longitude').circular = True
 
-#tas_hist_land_Ciris_backfilled = gridfill.fill_cube(tas_hist_land_Ciris, 1e-3, 0.6, 2000, cyclic=True, initzonal=True, verbose=True)
 tas_hist_land_Ciris_backfilled = gridfill.fill_cube(tas_hist_land_Ciris, 1e-3, 0.6, 2000, initzonal=True, verbose=True)
 
 print('Step 5 complete')
