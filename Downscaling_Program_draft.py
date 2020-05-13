@@ -37,7 +37,10 @@ import pandas as pd
 import re
 from netCDF4 import Dataset, date2index, num2date, date2num
 import scipy
+import gridfill
+import iris
 
+print('Import complete')
 
 """
 (1.2) Create a list of required netCDF files.
@@ -63,6 +66,8 @@ pre_file_ssp2 = xr.open_mfdataset(r"G:\Climate_Data\1_CMIP_DATA\2_CMIP6\1_NorESM
 pre_file_ssp3 = xr.open_mfdataset(r"G:\Climate_Data\1_CMIP_DATA\2_CMIP6\1_NorESM2_MM\pre\ssp3_70\*.nc", combine='by_coords')
 pre_file_ssp5 = xr.open_mfdataset(r"G:\Climate_Data\1_CMIP_DATA\2_CMIP6\1_NorESM2_MM\pre\ssp5_85\*.nc", combine='by_coords')
 
+print('Step 1 complete')
+
 ########################################################################################################
 """
 STEP 2: IMPORT CMIP CLIMATE DATA AND CALCULATE CLIMATE AVERAGES.
@@ -81,41 +86,68 @@ tas_hist_slice = tas_file_hist.sel(time=slice("1961-01-16", "1990-12-16"), lat=s
 tas_ssp1_slice = tas_file_ssp1.sel(time=slice("2090-01-16", "2099-12-16"), lat=slice(50., 90.)) 
 
 # Precipitation files
-pre_hist_slice = pre_file_hist.sel(time=slice("2090-01-16", "2099-12-16"), lat=slice(50., 90.)) 
+pre_hist_slice = pre_file_hist.sel(time=slice("1961-01-16", "1990-12-16"), lat=slice(50., 90.)) 
 pre_ssp1_slice = pre_file_ssp1.sel(time=slice("2090-01-16", "2099-12-16"), lat=slice(50., 90.)) 
 
 """
-(2.2) Average climate values for each month
+(2.2) Average climate values for each month and convert to desired units
 """
-# Time variable already returning monthly values, need to find way to average these for each month (e.g. all Januaries, Februaries, etc.)
+# Use groupby to average by month
 
-# Temperature
-tas_hist_mean_monthly_K = tas_hist_slice['tas'].mean('time',keep_attrs=True)
-tas_ssp1_mean_monthly_K = tas_ssp1_slice['tas'].mean('time',keep_attrs=True)
+"""Temperature"""
+tas_hist_mean_monthly_K = tas_hist_slice['tas'].groupby("time.month").mean('time',keep_attrs=True)
+tas_ssp1_mean_monthly_K = tas_ssp1_slice['tas'].groupby("time.month").mean('time',keep_attrs=True)
 
-
-#Precipitation
-#pre_hist_mean_monthly =
-#pre_ssp1_mean_monthly =
-
-
-"""
-(2.2) Convert climate data into desired units
-"""
 # Convert from Kelvin to Celsius
 tas_hist_mean_monthly_C = tas_hist_mean_monthly_K-273.15
-#tas_ssp1_mean_monthly_C = tas_ssp1_mean_monthly_K-273.15
+tas_ssp1_mean_monthly_C = tas_ssp1_mean_monthly_K-273.15
 
 
-# Convert from mm/second to mm per month
+"""Precipitation"""
+# Convert from mm/second to mm per day
 # 60 x 60 x 24 = 86,400 (one day)
-# 86,400 x 365 = 31,556,926 (one year)
-# 31,556,926 / 12 = 2,629,743.8 (estimate for one month)
-#pre_hist_mean_monthly_mm = pre_hist_mean_monthly * 2,629,743.8 
-#pre_ssp1_mean_monthly_mm = pre_ssp1_mean_monthly * 2,629,743.8 
+pre_hist_day = pre_hist_slice['pr'] * 86400.
+pre_ssp1_day = pre_ssp1_slice['pr'] * 86400.
 
+# Calculate the number of days in each month
+# adapted from http://xarray.pydata.org/en/stable/examples/monthly-means.html
+# Build a dictionary of calendars
+dpm = {'noleap': [0, 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31],
+       '365_day': [0, 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31],
+       'standard': [0, 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31],
+       'gregorian': [0, 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31],
+       'proleptic_gregorian': [0, 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31],
+       'all_leap': [0, 31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31],
+       '366_day': [0, 31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31],
+       '360_day': [0, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30]}
 
-# Better way of doing this?? ^^
+# Define new function get_dpm
+def get_dpm(time, calendar='standard'):
+    """
+    return a array of days per month corresponding to the months provided in `months`
+    """
+    month_length = np.zeros(len(time), dtype=np.int)
+    cal_days = dpm[calendar]
+    for i, (month, year) in enumerate(zip(time.month, time.year)):
+        month_length[i] = cal_days[month]
+    return month_length
+
+# Use get_dpm to calculate the number of days in each month in slice
+# Time coordinates match those of the precipitation data
+pre_hist_month_length = xr.DataArray(get_dpm(pre_hist_day.time.to_index(), calendar='noleap'), coords=[pre_hist_day.time], name='month_length')
+pre_ssp1_month_length = xr.DataArray(get_dpm(pre_ssp1_day.time.to_index(), calendar='noleap'), coords=[pre_ssp1_day.time], name='month_length')
+# Multiply the days in the month by the precipitation value for that month
+pre_hist_mth= pre_hist_month_length * pre_hist_day
+pre_ssp1_mth= pre_ssp1_month_length * pre_ssp1_day
+
+# Average monthly precipitation values by month
+pre_hist_mean_mth = pre_hist_mth.groupby("time.month").mean('time',keep_attrs=True)
+pre_hist_mean_mth = pre_hist_mean_mth.rename('Average Historical Monthly Precipitation') # rename dataset
+
+pre_ssp1_mean_mth = pre_ssp1_mth.groupby("time.month").mean('time',keep_attrs=True)
+pre_ssp1_mean_mth = pre_ssp1_mean_mth.rename('Average SSP1 Monthly Precipitation')
+
+print('Step 2 Complete')
 
 ########################################################################################################
 """
@@ -150,6 +182,8 @@ tas_hist_land_C = tas_hist_mean_monthly_C.where(land_perc.data > 50.) # selects 
 #pre_hist_land_C = pre_hist_mean_monthly_mm.where(land_perc.data > 50.) # selects all grid cells where land % is less than 50 %
 #pre_ssp1_land_C = pre_ssp1_mean_monthly_mm.where(land_perc.data > 50.) # selects all grid cells where land % is less than 50 %
 
+print('Step 3 complete')
+
 ########################################################################################################
 """
 STEP 4: IMPORT MODERN OBSERVATIONAL DATASET (CRU TS 4.03)
@@ -173,6 +207,8 @@ CRU_pre_dset = xr.open_mfdataset(r"G:\Climate_Data\3_Observational_data\CRU data
 CRU_tmp_slice = CRU_tmp_dset.sel(time=slice("1961-01-16", "1990-12-16"), lat=slice(50., 90.)) # Slice to match study region of SSP files
 CRU_pre_slice = CRU_pre_dset.sel(time=slice("1961-01-16", "1990-12-16"), lat=slice(50., 90.)) # Slice to match study region of SSP files
 
+print('Step 4 complete')
+
 ########################################################################################################
 """
 STEP 5: EXTRAPOLATION 
@@ -180,27 +216,26 @@ Need to remove NaNs for interpolation step below.
 Use Poisson Equation solver with overrelaxation to extrapolate terrestrial data over ocean.
 """
 ########################################################################################################
-# 
 
 # Use grid fill to extrapolate over ocean
-# Still need to work out how to import gridfill
-# Can try installing manually from https://github.com/ajdawson/gridfill
-from gridfill import fill
-xxxxxxx
+# Can  install gridfill manually from https://github.com/ajdawson/gridfill
+
 # Create dictionary with settings for Poisson grid filling. Definitions:
-# eps = Tolerance for determining the solution complete.
-# relax = Relaxation constant. Usually 0.45 <= *relax* <= 0.6. Defaults to 0.6.
-# itermax = Maximum number of iterations of the relaxation scheme. Defaults to 100 iterations.
-# initzonal = If *False* missing values will be initialized to zero, if *True* missing values will be initialized to the zonal mean. Defaultsto *False*.
-# cyclic = Set to *False* if the x-coordinate of the grid is not cyclic, set to *True* if it is cyclic. Defaults to *False*.
-# verbose = If *True* information about algorithm performance will be printed to stdout, if *False* nothing is printed. Defaults to *False*.
-kw = dict(eps=1e-3, relax=0.6, itermax=2000, initzonal=True, cyclic=True, verbose=True)
+# eps = Tolerance for determining the solution complete. [1e-3]
+# relax = Relaxation constant. Usually 0.45 <= *relax* <= 0.6. Defaults to 0.6. [0.6]
+# itermax = Maximum number of iterations of the relaxation scheme. Defaults to 100 iterations. [2000]
+# initzonal = If *False* missing values will be initialized to zero, if *True* missing values will be initialized to the zonal mean. Defaultsto *False*. [True]
+# cyclic = Set to *False* if the x-coordinate of the grid is not cyclic, set to *True* if it is cyclic. Defaults to *False*. [Not used]
+# verbose = If *True* information about algorithm performance will be printed to stdout, if *False* nothing is printed. Defaults to *False*. [True]
 
-# Run the extrapolation
-# syntax = fill(gridded data, xdim (e.g. which # variable is x), ydim (e.g. which # variable is y), specification dictionary)
-filled, converged = fill(tas_hist_land_C, 1, 0, **kw)
-### ERROR##
+# Try iris instead of xarray:
+tas_hist_land_Ciris = tas_hist_land_C.to_iris() # convert to Iris cube
+# Need to add a cyclic attribute to the iris cube itself
+tas_hist_land_Ciris.coord('longitude').circular = True
 
+tas_hist_land_Ciris_backfilled = gridfill.fill_cube(tas_hist_land_Ciris, 1e-3, 0.6, 2000, initzonal=True, verbose=True)
+
+print('Step 5 complete')
 ########################################################################################################
 """
 STEP 6: REGRIDDING TO HIGHER RESOLUTION

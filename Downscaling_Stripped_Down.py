@@ -59,9 +59,8 @@ tas_ssp1_slice = tas_file_ssp1.sel(time=slice("2090-01-16", "2099-12-16"), lat=s
 """
 (2.2) Average climate values for study time period
 """
-# Time variable already returning monthly values, need to find way to average these for each month (e.g. all Januaries, Februaries, etc.)
-
 # Temperature
+# GroupBy subdivides dataset into months before averaging. This code prodcues monthly mean temperatures.
 tas_hist_mean_monthly_K = tas_hist_slice['tas'].groupby("time.month").mean('time',keep_attrs=True)
 tas_ssp1_mean_monthly_K = tas_ssp1_slice['tas'].groupby("time.month").mean('time',keep_attrs=True)
 
