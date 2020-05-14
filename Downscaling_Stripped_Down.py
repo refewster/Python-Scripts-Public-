@@ -120,14 +120,18 @@ STEP 4: IMPORT MODERN OBSERVATIONAL DATASET (CRU TS 4.03)
 print('(4.1) Import CRU TS 4.03 datasets...')
 
 # Load in observational temperature dataset
-CRU_tmp_dset = xr.open_mfdataset(r"G:\Climate_Data\3_Observational_data\CRU data\CRU_TS_404\cru_ts4.04.1901.2019.tmp.dat.nc", combine='by_coords')
+CRU_tmp_file = r"G:\Climate_Data\3_Observational_data\CRU data\CRU_TS_404\cru_ts4.04.1901.2019.tmp.dat.nc"
+CRU_tmp_dset = xr.open_mfdataset(CRU_tmp_file, combine='by_coords')
 # Load in observational precipitation dataset
-#CRU_pre_dset = xr.open_mfdataset(r"G:\Climate_Data\3_Observational_data\CRU data\CRU_TS_404\cru_ts4.04.1901.2019.pre.dat.nc", combine='by_coords')
+# CRU_pre_file =r"G:\Climate_Data\3_Observational_data\CRU data\CRU_TS_404\cru_ts4.04.1901.2019.pre.dat.nc"
+#CRU_pre_dset = xr.open_mfdataset(CRU_pre_file, combine='by_coords')
 
 """
 """
 # REMEMBER: CRU datasets use -179.75 -> 179.75 for lon
-CRU_tmp_slice = CRU_tmp_dset.sel(time=slice("1961-01-16", "1990-12-16"), lat=slice(50., 90.)) # Slice to match study region of SSP files
+CRU_tmp_slice = CRU_tmp_dset.sel(time=slice("1961-01-16", "1990-12-16"), lat=slice(50., 90.)).drop(labels='stn') # Slice to match study region of SSP files
+# Drop 'stn' variable
+
 #CRU_pre_slice = CRU_pre_dset.sel(time=slice("1961-01-16", "1990-12-16"), lat=slice(50., 90.)) # Slice to match study region of SSP files
 
 print('Step 4 complete')
@@ -166,26 +170,71 @@ print('Step 5 complete')
 STEP 6: REGRIDDING TO HIGHER RESOLUTION
 Base new grid on CRU grid (0.5 x 0.5 deg). Interpolate using bicubic spline.
 """
+# Giving up with xarray, use iris
+# ("1961-01-16", "1990-12-16"), lat=slice(50., 90.))
+CRU_tmp_array = iris.load(CRU_tmp_file)[1] # only tmp not stn
+# Select dates (not actually required for regridding, but may be useful later?)
+import datetime
+date1 = datetime.datetime.strptime('19610116T0000Z','%Y%m%dT%H%MZ')
+date2 = datetime.datetime.strptime('19901216T0000Z','%Y%m%dT%H%MZ')
+date_range = iris.Constraint(time=lambda cell: date1 <= cell.point <= date2 )
+# Select latitudes
+lat1 = 50.
+lat2 = 90.
+lat_range = iris.Constraint(latitude=lambda cell: lat1 <= cell.point <= lat2 )
+CRU_tmp_array_t_slice = CRU_tmp_array.extract(date_range)
+CRU_tmp_array_slice = CRU_tmp_array_t_slice.extract(lat_range)
 
-# Convert back to xarray:
-tas_hist_land_C_backfilled = xr.DataArray.from_iris(tas_hist_land_Ciris_backfilled)
 
-# Sci.py method - currently doesn't work
-high_lon = CRU_tmp_slice.lon  
-high_lat = CRU_tmp_slice.lat  
-
-# tas_hist_land_backfilled_high_C = tas_hist_land_C_backfilled.interp(lat=high_lat, lon=high_lon, method="cubic") # nearest and linear methods do work
+print("(6) Performing linear interpolation with Iris...")
+# Bilinear interpolation using CRU_tmp_array_slice grid
+tas_hist_land_Ciris_backfilled_high = tas_hist_land_Ciris_backfilled.regrid(CRU_tmp_array_slice, iris.analysis.Linear())
+print("Step 6 complete")
 
 ########################################################################################################
 """
-STEP 7: BIAS CORRECTION
+STEP 7: APPLY OBSERVATIONAL LAND-SEA MASK
+"""
+########################################################################################################
+"""
+(7.1) Create CRU land sea mask
+"""
+## Convert back to xarray (if wanted):
+tas_hist_land_C_backfilled_high = xr.DataArray.from_iris(tas_hist_land_Ciris_backfilled_high)
+CRU_tmp_xr = xr.DataArray.from_iris(CRU_tmp_array_slice)
+
+# Make CRU mask same shape as CMIP tas array
+CRU_mask_xr = CRU_tmp_xr.groupby("time.month").mean('time',keep_attrs=True)
+
+"""
+(7.2) Apply CRU land sea mask to downscaled CMIP data
+"""
+print("Applying observational land sea mask to downscaled CMIP data...")
+
+# The fill value for missing values in the CRU data is -999. This line selects only those which are greater than that value.
+tas_hist_land_C_backfilled_high_masked = tas_hist_land_C_backfilled_high.where(CRU_mask_xr.data >-998) # Mask precipitation files...
+# Provides a runtime warning - solve this? Masking does appear to have worked though.
+
+
+#ssp 1
+
+
+print("Step 7 complete")
+
+
+xx
+
+
+########################################################################################################
+"""
+STEP 8: BIAS CORRECTION
 """
 ########################################################################################################
 """
 (7.3) Variable formatting
 """
 #CMIP_fut_tmp = tas_SSP1_land_backfilled_high_C
-#CMIP_hist_tmp = tas_hist_land_backfilled_high_C
+#CMIP_hist_tmp = tas_hist_land_Ciris_backfilled_high
 #CRU_tmp = CRU_tmp_slice
 
 """
@@ -210,23 +259,6 @@ a_ltd = xr.where(a > 4.0, 4.0, a)
 # Apply the limited alpha coefficient to bias correct future precipitation
 SSP1_BCor_Pre = a_ltd * SSP1_fut_pre
 
-########################################################################################################
-"""
-STEP 8: APPLY OBSERVATIONAL LAND-SEA MASK
-"""
-########################################################################################################
-
-# (8.1) Create CRU land-sea mask
-CRU_tmp_dset = xr.open_mfdataset(r"G:\Climate_Data\3_Observational_data\CRU data\CRU_TS_404\cru_ts4.04.1901.2019.tmp.dat.nc", combine='by_coords')
-CRU_mask = CRU_tmp_dset['tmp'] # create single variable file
-
-# (8.2) Apply CRU land sea mask to downscaled CMIP data
-
-# Mask temperature files...
-SSP1_BCor_Temp_land = SSP1_BCor_Temp.where(CRU_Mask.data != NaN) # Keeps only grid cells within the CRU TS 4.04 land mask 
-
-# Mask precipitation files...
-SSP1_BCor_Pre_land = SSP1_BCor_Pre.where(CRU_Mask.data != NaN)
 
 ########################################################################################################
 """
