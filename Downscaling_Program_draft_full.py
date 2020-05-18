@@ -41,6 +41,12 @@ tas_file_hist = r"G:\Climate_Data\1_CMIP_DATA\2_CMIP6\2_CanESM5\tmp\historical\t
 tas_file_hist = xr.open_mfdataset(tas_file_hist, combine='by_coords')
 tas_file_ssp1 = r"G:\Climate_Data\1_CMIP_DATA\2_CMIP6\2_CanESM5\tmp\ssp1_26\tas_Amon_CanESM5_ssp126_r1i1p1f1_gn_201501-210012.nc"
 tas_file_ssp1 = xr.open_mfdataset(tas_file_ssp1, combine='by_coords')
+tas_file_ssp2 = r"G:\Climate_Data\1_CMIP_DATA\2_CMIP6\2_CanESM5\tmp\ssp2_45\tas_Amon_CanESM5_ssp245_r1i1p1f1_gn_201501-210012.nc"
+tas_file_ssp2 = xr.open_mfdataset(tas_file_ssp2, combine='by_coords')
+tas_file_ssp3 = r"G:\Climate_Data\1_CMIP_DATA\2_CMIP6\2_CanESM5\tmp\ssp3_70\tas_Amon_CanESM5_ssp370_r1i1p1f1_gn_201501-210012.nc"
+tas_file_ssp3 = xr.open_mfdataset(tas_file_ssp3, combine='by_coords')
+tas_file_ssp5 = r"G:\Climate_Data\1_CMIP_DATA\2_CMIP6\2_CanESM5\tmp\ssp5_85\tas_Amon_CanESM5_ssp585_r1i1p1f1_gn_201501-210012.nc"
+tas_file_ssp5 = xr.open_mfdataset(tas_file_ssp5, combine='by_coords')
 
 # Precipitation files
 # For models with multiple decadal files, put an asterisk after the folder name e.g. "..historical\*.nc"
@@ -48,6 +54,13 @@ pre_file_hist = r"G:\Climate_Data\1_CMIP_DATA\2_CMIP6\2_CanESM5\pre\historical\p
 pre_file_hist = xr.open_mfdataset(pre_file_hist, combine='by_coords')
 pre_file_ssp1 = r"G:\Climate_Data\1_CMIP_DATA\2_CMIP6\2_CanESM5\pre\ssp1_26\pr_Amon_CanESM5_ssp126_r1i1p1f1_gn_201501-210012.nc"
 pre_file_ssp1 = xr.open_mfdataset(pre_file_ssp1, combine='by_coords')
+pre_file_ssp2 = r"G:\Climate_Data\1_CMIP_DATA\2_CMIP6\2_CanESM5\pre\ssp2_45\pr_Amon_CanESM5_ssp245_r1i1p1f1_gn_201501-210012.nc"
+pre_file_ssp2 = xr.open_mfdataset(pre_file_ssp2, combine='by_coords')
+pre_file_ssp3 = r"G:\Climate_Data\1_CMIP_DATA\2_CMIP6\2_CanESM5\pre\ssp3_70\pr_Amon_CanESM5_ssp370_r1i1p1f1_gn_201501-210012.nc"
+pre_file_ssp3 = xr.open_mfdataset(pre_file_ssp3, combine='by_coords')
+pre_file_ssp5 = r"G:\Climate_Data\1_CMIP_DATA\2_CMIP6\2_CanESM5\pre\ssp5_85\pr_Amon_CanESM5_ssp585_r1i1p1f1_gn_201501-210012.nc"
+pre_file_ssp5 = xr.open_mfdataset(pre_file_ssp5, combine='by_coords')
+
 
 """
 (1.3) Import gridded observational data files
@@ -57,9 +70,11 @@ print('(1.3) Import observational datasets...')
 # Load in observational temperature dataset
 CRU_tmp_file = r"G:\Climate_Data\3_Observational_data\CRU data\CRU_TS_404\cru_ts4.04.1901.2019.tmp.dat.nc"
 CRU_tmp_dset = xr.open_mfdataset(CRU_tmp_file, combine='by_coords')
+
 # Load in observational precipitation dataset
 CRU_pre_file =r"G:\Climate_Data\3_Observational_data\CRU data\CRU_TS_404\cru_ts4.04.1901.2019.pre.dat.nc"
 CRU_pre_dset = xr.open_mfdataset(CRU_pre_file, combine='by_coords')
+
 
 """
 (1.3) Import gridded observational data files
@@ -86,10 +101,16 @@ STEP 2: IMPORT CMIP CLIMATE DATA AND CALCULATE CLIMATE AVERAGES.
 # Temperature slices
 tas_hist_slice = tas_file_hist.sel(time=slice("1961-01-16", "1990-12-16"))
 tas_ssp1_slice = tas_file_ssp1.sel(time=slice("2090-01-16", "2099-12-16")) 
+tas_ssp2_slice = tas_file_ssp2.sel(time=slice("2090-01-16", "2099-12-16"))
+tas_ssp3_slice = tas_file_ssp3.sel(time=slice("2090-01-16", "2099-12-16"))
+tas_ssp5_slice = tas_file_ssp5.sel(time=slice("2090-01-16", "2099-12-16"))
 
 # Precipitation slices
 pre_hist_slice = pre_file_hist.sel(time=slice("1961-01-16", "1990-12-16"))
 pre_ssp1_slice = pre_file_ssp1.sel(time=slice("2090-01-16", "2099-12-16")) 
+pre_ssp2_slice = pre_file_ssp2.sel(time=slice("2090-01-16", "2099-12-16"))
+pre_ssp3_slice = pre_file_ssp3.sel(time=slice("2090-01-16", "2099-12-16"))
+pre_ssp5_slice = pre_file_ssp5.sel(time=slice("2090-01-16", "2099-12-16"))
 
 """
 (2.2) Convert climate data into desired units and average climate values for study time period
@@ -98,17 +119,25 @@ pre_ssp1_slice = pre_file_ssp1.sel(time=slice("2090-01-16", "2099-12-16"))
 # GroupBy subdivides dataset into months before averaging. This code produces monthly mean temperatures.
 tas_hist_mean_monthly_K = tas_hist_slice['tas'].groupby("time.month").mean('time',keep_attrs=True)
 tas_ssp1_mean_monthly_K = tas_ssp1_slice['tas'].groupby("time.month").mean('time',keep_attrs=True)
+tas_ssp2_mean_monthly_K = tas_ssp2_slice['tas'].groupby("time.month").mean('time',keep_attrs=True)
+tas_ssp3_mean_monthly_K = tas_ssp3_slice['tas'].groupby("time.month").mean('time',keep_attrs=True)
+tas_ssp5_mean_monthly_K = tas_ssp5_slice['tas'].groupby("time.month").mean('time',keep_attrs=True)
 
 # Convert from Kelvin to Celsius
 tas_hist_mean_monthly_C = tas_hist_mean_monthly_K-273.15
 tas_ssp1_mean_monthly_C = tas_ssp1_mean_monthly_K-273.15
-
+tas_ssp2_mean_monthly_C = tas_ssp2_mean_monthly_K-273.15
+tas_ssp3_mean_monthly_C = tas_ssp3_mean_monthly_K-273.15
+tas_ssp5_mean_monthly_C = tas_ssp5_mean_monthly_K-273.15
 
 # Precipitation
 # Convert from mm/second to mm per day
 # 60 x 60 x 24 = 86,400 (one day)
 pre_hist_day = pre_hist_slice['pr'] * 86400.
 pre_ssp1_day = pre_ssp1_slice['pr'] * 86400.
+pre_ssp2_day = pre_ssp2_slice['pr'] * 86400.
+pre_ssp3_day = pre_ssp3_slice['pr'] * 86400.
+pre_ssp5_day = pre_ssp5_slice['pr'] * 86400.
 
 # Calculate the number of days in each month
 # adapted from http://xarray.pydata.org/en/stable/examples/monthly-means.html
@@ -137,13 +166,22 @@ def get_dpm(time, calendar='standard'):
 # Time coordinates match those of the precipitation data
 pre_hist_month_length = xr.DataArray(get_dpm(pre_hist_day.time.to_index(), calendar='noleap'), coords=[pre_hist_day.time], name='month_length')
 pre_ssp1_month_length = xr.DataArray(get_dpm(pre_ssp1_day.time.to_index(), calendar='noleap'), coords=[pre_ssp1_day.time], name='month_length')
+pre_ssp2_month_length = xr.DataArray(get_dpm(pre_ssp2_day.time.to_index(), calendar='noleap'), coords=[pre_ssp2_day.time], name='month_length')
+pre_ssp3_month_length = xr.DataArray(get_dpm(pre_ssp3_day.time.to_index(), calendar='noleap'), coords=[pre_ssp3_day.time], name='month_length')
+pre_ssp5_month_length = xr.DataArray(get_dpm(pre_ssp5_day.time.to_index(), calendar='noleap'), coords=[pre_ssp5_day.time], name='month_length')
 # Multiply the days in the month by the precipitation value for that month
 pre_hist_mth= pre_hist_month_length * pre_hist_day
 pre_ssp1_mth= pre_ssp1_month_length * pre_ssp1_day
+pre_ssp2_mth= pre_ssp2_month_length * pre_ssp2_day
+pre_ssp3_mth= pre_ssp3_month_length * pre_ssp3_day
+pre_ssp5_mth= pre_ssp5_month_length * pre_ssp5_day
 
 # Average monthly precipitation values by month
 pre_hist_mean_mth = pre_hist_mth.groupby("time.month").mean('time',keep_attrs=True)
 pre_ssp1_mean_mth = pre_ssp1_mth.groupby("time.month").mean('time',keep_attrs=True)
+pre_ssp2_mean_mth = pre_ssp2_mth.groupby("time.month").mean('time',keep_attrs=True)
+pre_ssp3_mean_mth = pre_ssp3_mth.groupby("time.month").mean('time',keep_attrs=True)
+pre_ssp5_mean_mth = pre_ssp5_mth.groupby("time.month").mean('time',keep_attrs=True)
 
 print('Step 2: Calculate Monthly Averages Complete')
 
@@ -160,8 +198,6 @@ print('(3.1) Assign CMIP land-sea mask...')
 # sftlf is the standardised variable name for land percentage cover
 mask_dset = xr.open_dataset(mask_file)#Use xarray to open the mask dataset 
 land_perc = mask_dset['sftlf'] # assign the land percentage variable to a new object
-
-
 print('Max land area (CMIP mask):', land_perc.data.max(), '%') # check that max land area is 100 %
 print('Min land area (CMIP mask):', land_perc.data.min(), '%') # check that min land area is 0 %
 
@@ -170,14 +206,19 @@ print('Min land area (CMIP mask):', land_perc.data.min(), '%') # check that min 
 """
 print('(3.2) Apply land-sea mask...')
 #numpy includes a np.where function that allows us to simply use a logical command
-
 # Mask out temperature data
 tas_hist_land_C = tas_hist_mean_monthly_C.where(land_perc.data > 50.) # selects all grid cells where land % is less than 50 %
 tas_ssp1_land_C = tas_ssp1_mean_monthly_C.where(land_perc.data > 50.) # selects all grid cells where land % is less than 50 %
+tas_ssp2_land_C = tas_ssp2_mean_monthly_C.where(land_perc.data > 50.) # selects all grid cells where land % is less than 50 %
+tas_ssp3_land_C = tas_ssp3_mean_monthly_C.where(land_perc.data > 50.) # selects all grid cells where land % is less than 50 %
+tas_ssp5_land_C = tas_ssp5_mean_monthly_C.where(land_perc.data > 50.) # selects all grid cells where land % is less than 50 %
 
 # Mask out preciptiation data
 pre_hist_land = pre_hist_mean_mth.where(land_perc.data > 50.) # selects all grid cells where land % is less than 50 %
 pre_ssp1_land = pre_ssp1_mean_mth.where(land_perc.data > 50.) # selects all grid cells where land % is less than 50 %
+pre_ssp2_land = pre_ssp2_mean_mth.where(land_perc.data > 50.) # selects all grid cells where land % is less than 50 %
+pre_ssp3_land = pre_ssp3_mean_mth.where(land_perc.data > 50.) # selects all grid cells where land % is less than 50 %
+pre_ssp5_land = pre_ssp5_mean_mth.where(land_perc.data > 50.) # selects all grid cells where land % is less than 50 %
 
 print('Step 3: Mask Out Ocean complete')
 
@@ -188,35 +229,42 @@ Need to remove NaNs for interpolation step below.
 Use Poisson Equation solver with overrelaxation to extrapolate terrestrial data over ocean.
 """
 ########################################################################################################
-
-
-
+"""
+(4.1) Convert xarray to iris cubes
+"""
+print ('(4.2) Conversion to iris cubes...')
 # Temperature
 # Convert to iris from xarray:
-tas_hist_land_Ciris = tas_hist_land_C.to_iris() # convert to Iris cube
-tas_ssp1_land_Ciris = tas_ssp1_land_C.to_iris() # convert to Iris cube
+tas_hist_land_Ciris = tas_hist_land_C.to_iris() 
+tas_ssp1_land_Ciris = tas_ssp1_land_C.to_iris() 
+tas_ssp2_land_Ciris = tas_ssp2_land_C.to_iris() 
+tas_ssp3_land_Ciris = tas_ssp3_land_C.to_iris() 
+tas_ssp5_land_Ciris = tas_ssp5_land_C.to_iris() 
 # Need to add the cyclic attribute to the iris cube itself
 tas_hist_land_Ciris.coord('longitude').circular = True
 tas_ssp1_land_Ciris.coord('longitude').circular = True
-# Backfill terrestrial climate over the ocean using gridfill.fill
-# Increase iterations to ~7000 for NorESM2
-tas_hist_land_Ciris_backfilled = gridfill.fill_cube(tas_hist_land_Ciris, 1e-3, 0.6, 2000, initzonal=True, verbose=True)
-tas_ssp1_land_Ciris_backfilled = gridfill.fill_cube(tas_ssp1_land_Ciris, 1e-3, 0.6, 2000, initzonal=True, verbose=True)
+tas_ssp2_land_Ciris.coord('longitude').circular = True
+tas_ssp3_land_Ciris.coord('longitude').circular = True
+tas_ssp5_land_Ciris.coord('longitude').circular = True
 
 # Precipitation
 # Convert to iris from xarray:
-pre_hist_land_iris = pre_hist_land.to_iris() # convert to Iris cube
-pre_ssp1_land_iris = pre_ssp1_land.to_iris() # convert to Iris cube
+pre_hist_land_iris = pre_hist_land.to_iris() 
+pre_ssp1_land_iris = pre_ssp1_land.to_iris() 
+pre_ssp2_land_iris = pre_ssp2_land.to_iris() 
+pre_ssp3_land_iris = pre_ssp3_land.to_iris() 
+pre_ssp5_land_iris = pre_ssp5_land.to_iris() 
 # Need to add the cyclic attribute to the iris cube itself
 pre_hist_land_iris.coord('longitude').circular = True
 pre_ssp1_land_iris.coord('longitude').circular = True
-
+pre_ssp2_land_iris.coord('longitude').circular = True
+pre_ssp3_land_iris.coord('longitude').circular = True
+pre_ssp5_land_iris.coord('longitude').circular = True
 
 """
 (4.2) Conduct extrapolation procedure
 """
-
-print ('(4.2) Extrapolate terrestrial climate over ocean...')
+print ('(4.2) Extrapolation of terrestrial climate over ocean...')
 # Backfill terrestrial climate over the ocean using gridfill.fill
 # Can  install gridfill manually from https://github.com/ajdawson/gridfill
 
@@ -228,9 +276,21 @@ print ('(4.2) Extrapolate terrestrial climate over ocean...')
 # cyclic = Set to *False* if the x-coordinate of the grid is not cyclic, set to *True* if it is cyclic. Defaults to *False*. [Not used]
 # verbose = If *True* information about algorithm performance will be printed to stdout, if *False* nothing is printed. Defaults to *False*. [True]
 
-# Increase maximum iterations to ~7000 for NorESM2
+## Backfill terrestrial climate over the ocean using gridfill.fill
+## Increase iterations to ~7000 for NorESM2
+# Temperature
+tas_hist_land_Ciris_backfilled = gridfill.fill_cube(tas_hist_land_Ciris, 1e-3, 0.6, 7000, initzonal=True, verbose=True)
+tas_ssp1_land_Ciris_backfilled = gridfill.fill_cube(tas_ssp1_land_Ciris, 1e-3, 0.6, 7000, initzonal=True, verbose=True)
+tas_ssp2_land_Ciris_backfilled = gridfill.fill_cube(tas_ssp2_land_Ciris, 1e-3, 0.6, 7000, initzonal=True, verbose=True)
+tas_ssp3_land_Ciris_backfilled = gridfill.fill_cube(tas_ssp3_land_Ciris, 1e-3, 0.6, 7000, initzonal=True, verbose=True)
+tas_ssp5_land_Ciris_backfilled = gridfill.fill_cube(tas_ssp5_land_Ciris, 1e-3, 0.6, 7000, initzonal=True, verbose=True)
+
+# Precipitation
 pre_hist_land_iris_backfilled = gridfill.fill_cube(pre_hist_land_iris, 1e-3, 0.6, 7000, initzonal=True, verbose=True)
 pre_ssp1_land_iris_backfilled = gridfill.fill_cube(pre_ssp1_land_iris, 1e-3, 0.6, 7000, initzonal=True, verbose=True)
+pre_ssp2_land_iris_backfilled = gridfill.fill_cube(pre_ssp2_land_iris, 1e-3, 0.6, 7000, initzonal=True, verbose=True)
+pre_ssp3_land_iris_backfilled = gridfill.fill_cube(pre_ssp3_land_iris, 1e-3, 0.6, 7000, initzonal=True, verbose=True)
+pre_ssp5_land_iris_backfilled = gridfill.fill_cube(pre_ssp5_land_iris, 1e-3, 0.6, 7000, initzonal=True, verbose=True)
 
 print('Step 4: Extrapolation complete')
 
@@ -261,10 +321,16 @@ print("(5) Performing linear interpolation with Iris...")
 # Temperature
 tas_hist_land_Ciris_backfilled_high = tas_hist_land_Ciris_backfilled.regrid(CRU_tmp_array_slice, iris.analysis.Linear())
 tas_ssp1_land_Ciris_backfilled_high = tas_ssp1_land_Ciris_backfilled.regrid(CRU_tmp_array_slice, iris.analysis.Linear())
+tas_ssp2_land_Ciris_backfilled_high = tas_ssp2_land_Ciris_backfilled.regrid(CRU_tmp_array_slice, iris.analysis.Linear())
+tas_ssp3_land_Ciris_backfilled_high = tas_ssp3_land_Ciris_backfilled.regrid(CRU_tmp_array_slice, iris.analysis.Linear())
+tas_ssp5_land_Ciris_backfilled_high = tas_ssp5_land_Ciris_backfilled.regrid(CRU_tmp_array_slice, iris.analysis.Linear())
 
 # Precipitation
 pre_hist_land_iris_backfilled_high = pre_hist_land_iris_backfilled.regrid(CRU_tmp_array_slice, iris.analysis.Linear())
 pre_ssp1_land_iris_backfilled_high = pre_ssp1_land_iris_backfilled.regrid(CRU_tmp_array_slice, iris.analysis.Linear())
+pre_ssp2_land_iris_backfilled_high = pre_ssp2_land_iris_backfilled.regrid(CRU_tmp_array_slice, iris.analysis.Linear())
+pre_ssp3_land_iris_backfilled_high = pre_ssp3_land_iris_backfilled.regrid(CRU_tmp_array_slice, iris.analysis.Linear())
+pre_ssp5_land_iris_backfilled_high = pre_ssp5_land_iris_backfilled.regrid(CRU_tmp_array_slice, iris.analysis.Linear())
 
 print("Step 5: Interpolation complete")
 
@@ -280,10 +346,16 @@ STEP 6: APPLY OBSERVATIONAL LAND-SEA MASK
 # Temperature
 tas_hist_land_C_backfilled_high = xr.DataArray.from_iris(tas_hist_land_Ciris_backfilled_high)
 tas_ssp1_land_C_backfilled_high = xr.DataArray.from_iris(tas_ssp1_land_Ciris_backfilled_high)
+tas_ssp2_land_C_backfilled_high = xr.DataArray.from_iris(tas_ssp2_land_Ciris_backfilled_high)
+tas_ssp3_land_C_backfilled_high = xr.DataArray.from_iris(tas_ssp3_land_Ciris_backfilled_high)
+tas_ssp5_land_C_backfilled_high = xr.DataArray.from_iris(tas_ssp5_land_Ciris_backfilled_high)
 
 # Precipitation
 pre_hist_land_backfilled_high = xr.DataArray.from_iris(pre_hist_land_iris_backfilled_high)
 pre_ssp1_land_backfilled_high = xr.DataArray.from_iris(pre_ssp1_land_iris_backfilled_high)
+pre_ssp2_land_backfilled_high = xr.DataArray.from_iris(pre_ssp2_land_iris_backfilled_high)
+pre_ssp3_land_backfilled_high = xr.DataArray.from_iris(pre_ssp3_land_iris_backfilled_high)
+pre_ssp5_land_backfilled_high = xr.DataArray.from_iris(pre_ssp5_land_iris_backfilled_high)
 
 ## Reload CRU data as an xarray and select climate variable
 ##Reshape to match shape of CMIP array
@@ -298,17 +370,23 @@ CRU_pre_xr = CRU_pre_slice_xr['pre'].groupby("time.month").mean('time',keep_attr
 """
 (6.2) Apply CRU land sea mask to downscaled CMIP data
 """
-
+print("(6) Apply Observational Mask")
 # Temperature
 # The fill value for missing values in the CRU data is -999. This line selects only those which are greater than that value.
 tas_hist_land_C_backfilled_high_masked = tas_hist_land_C_backfilled_high.where(CRU_tmp_xr.data >-998) 
 # Provides a runtime warning - solve this? Masking does appear to have worked though.
 # Possible that fill value is higher value (inf?)
 tas_ssp1_land_C_backfilled_high_masked = tas_ssp1_land_C_backfilled_high.where(CRU_tmp_xr.data >-998) 
+tas_ssp2_land_C_backfilled_high_masked = tas_ssp2_land_C_backfilled_high.where(CRU_tmp_xr.data >-998) 
+tas_ssp3_land_C_backfilled_high_masked = tas_ssp3_land_C_backfilled_high.where(CRU_tmp_xr.data >-998) 
+tas_ssp5_land_C_backfilled_high_masked = tas_ssp5_land_C_backfilled_high.where(CRU_tmp_xr.data >-998) 
 
 # Precipitation
 pre_hist_land_backfilled_high_masked = pre_hist_land_backfilled_high.where(CRU_tmp_xr.data >-998) 
 pre_ssp1_land_backfilled_high_masked = pre_ssp1_land_backfilled_high.where(CRU_tmp_xr.data >-998) 
+pre_ssp2_land_backfilled_high_masked = pre_ssp2_land_backfilled_high.where(CRU_tmp_xr.data >-998) 
+pre_ssp3_land_backfilled_high_masked = pre_ssp3_land_backfilled_high.where(CRU_tmp_xr.data >-998) 
+pre_ssp5_land_backfilled_high_masked = pre_ssp5_land_backfilled_high.where(CRU_tmp_xr.data >-998) 
 
 print("Step 6: Apply Observational Mask complete")
 
@@ -325,11 +403,17 @@ print('(7) Perform bias-correction...')
 CRU_tmp = CRU_tmp_xr
 CMIP_hist_tmp = tas_hist_land_C_backfilled_high_masked
 SSP1_tmp = tas_ssp1_land_C_backfilled_high_masked
+SSP2_tmp = tas_ssp2_land_C_backfilled_high_masked
+SSP3_tmp = tas_ssp3_land_C_backfilled_high_masked
+SSP5_tmp = tas_ssp5_land_C_backfilled_high_masked
 
 # Precipitation
 CRU_pre = CRU_pre_xr
 CMIP_hist_pre = pre_hist_land_backfilled_high_masked
 SSP1_pre = pre_ssp1_land_backfilled_high_masked
+SSP2_pre = pre_ssp2_land_backfilled_high_masked
+SSP3_pre = pre_ssp3_land_backfilled_high_masked
+SSP5_pre = pre_ssp5_land_backfilled_high_masked
 
 """
 (7.2) Temperature Bias correction
@@ -339,6 +423,13 @@ BCor_Temp = (CMIP_fut_tmp - CMIP_hist_tmp) + CRU_tmp
 # Temperature correction calculation:
 SSP1_BCor_tmp = (SSP1_tmp - CMIP_hist_tmp) + CRU_tmp
 SSP1_BCor_tmp = SSP1_BCor_tmp.rename('mean monthly near-surface temperature (degrees Celsius)') # Rename variable
+# Repeat for all scenarios
+SSP2_BCor_tmp = (SSP2_tmp - CMIP_hist_tmp) + CRU_tmp
+SSP2_BCor_tmp = SSP2_BCor_tmp.rename('mean monthly near-surface temperature (degrees Celsius)') 
+SSP3_BCor_tmp = (SSP3_tmp - CMIP_hist_tmp) + CRU_tmp
+SSP3_BCor_tmp = SSP3_BCor_tmp.rename('mean monthly near-surface temperature (degrees Celsius)') 
+SSP5_BCor_tmp = (SSP5_tmp - CMIP_hist_tmp) + CRU_tmp
+SSP5_BCor_tmp = SSP5_BCor_tmp.rename('mean monthly near-surface temperature (degrees Celsius)')
 
 """
 (7.3) Precipitation Bias correction
@@ -355,6 +446,13 @@ a_ltd = xr.where(a > 4.0, 4.0, a)
 # Apply the limited alpha coefficient to bias correct future precipitation
 SSP1_BCor_pre = a_ltd * SSP1_pre
 SSP1_BCor_pre = SSP1_BCor_pre.rename('mean monthly precipitation (mm)') # Rename variable
+# Repeat for all scenarios
+SSP2_BCor_pre = a_ltd * SSP2_pre
+SSP2_BCor_pre = SSP2_BCor_pre.rename('mean monthly precipitation (mm)') # Rename variable
+SSP3_BCor_pre = a_ltd * SSP3_pre
+SSP3_BCor_pre = SSP3_BCor_pre.rename('mean monthly precipitation (mm)') # Rename variable
+SSP5_BCor_pre = a_ltd * SSP5_pre
+SSP5_BCor_pre = SSP5_BCor_pre.rename('mean monthly precipitation (mm)') # Rename variable
 
 """
 (7.4) Subset to the region of interest
@@ -362,9 +460,15 @@ SSP1_BCor_pre = SSP1_BCor_pre.rename('mean monthly precipitation (mm)') # Rename
 # Select only grid cells within the latitudinal bands:
 # Temperature
 #SSP1_BCor_tmp_lat_slice = SSP1_BCor_tmp.sel(lat=slice(50., 90.))
+#SSP2_BCor_tmp_lat_slice = SSP2_BCor_tmp.sel(lat=slice(50., 90.))
+#SSP3_BCor_tmp_lat_slice = SSP3_BCor_tmp.sel(lat=slice(50., 90.))
+#SSP5_BCor_tmp_lat_slice = SSP5_BCor_tmp.sel(lat=slice(50., 90.))
 
 # Preciptiation
 #SSP1_BCor_tmp_lat_slice = SSP1_BCor_tmp.sel(lat=slice(50., 90.))
+#SSP2_BCor_tmp_lat_slice = SSP2_BCor_tmp.sel(lat=slice(50., 90.))
+#SSP3_BCor_tmp_lat_slice = SSP3_BCor_tmp.sel(lat=slice(50., 90.))
+#SSP5_BCor_tmp_lat_slice = SSP5_BCor_tmp.sel(lat=slice(50., 90.))
 
 print("Step 7 complete")
 
@@ -383,15 +487,23 @@ np.warnings.filterwarnings('ignore')
 
 # Temperature files
 SSP1_tmp.to_netcdf(tmp_DIR+'ssp1.nc')
+SSP5_tmp.to_netcdf(tmp_DIR+'ssp5.nc')
 CMIP_hist_tmp.to_netcdf(tmp_DIR+'cmip_hist.nc')
 CRU_tmp.to_netcdf(tmp_DIR+'cru_1961_1990.nc')
 SSP1_BCor_tmp.to_netcdf(tmp_DIR+'bcor_ssp1.nc')
+SSP2_BCor_tmp.to_netcdf(tmp_DIR+'bcor_ssp2.nc')
+SSP3_BCor_tmp.to_netcdf(tmp_DIR+'bcor_ssp3.nc')
+SSP5_BCor_tmp.to_netcdf(tmp_DIR+'bcor_ssp5.nc')
 
 # Precipitation files
 SSP1_pre.to_netcdf(pre_DIR+'ssp1.nc')
+SSP5_pre.to_netcdf(pre_DIR+'ssp5.nc')
 CMIP_hist_pre.to_netcdf(pre_DIR+'cmip_hist.nc')
 CRU_pre.to_netcdf(pre_DIR+'cru_1961_1990.nc')
 SSP1_BCor_pre.to_netcdf(pre_DIR+'bcor_ssp1.nc')
+SSP2_BCor_pre.to_netcdf(pre_DIR+'bcor_ssp2.nc')
+SSP3_BCor_pre.to_netcdf(pre_DIR+'bcor_ssp3.nc')
+SSP5_BCor_pre.to_netcdf(pre_DIR+'bcor_ssp5.nc')
 
 """
 (8.2) Output monthly climate values for each 0.5 degree grid cell as .csv
