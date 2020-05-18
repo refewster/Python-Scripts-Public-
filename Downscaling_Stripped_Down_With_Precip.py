@@ -1,11 +1,11 @@
 # -*- coding: cp1252 -*-
 ########################################################################################################
 """
-Program: Downscaling Program (DRAFT)
+Program: Downscaling Program (DRAFT) + precip
 
 Author: Richard Fewster
 Start Date: 30/04/2020
-Most Recent Update: 14/05/2020
+Most Recent Update: 18/05/2020
 
 """
 """
@@ -36,11 +36,19 @@ print('(1.2) Importing data files...')
 # CMIP land-sea mask file
 mask_file = r"G:\Climate_Data\1_CMIP_DATA\2_CMIP6\2_CanESM5\land\sftlf_fx_CanESM5_hist-volc_r1i1p1f1_gn.nc"
 # Temperature files
+# For models with multiple decadal files, put an asterisk after the folder name e.g. "..historical\*.nc"
 tas_file_hist = r"G:\Climate_Data\1_CMIP_DATA\2_CMIP6\2_CanESM5\tmp\historical\tas_Amon_CanESM5_historical_r1i1p1f1_gn_185001-201412.nc"
-tas_file_hist = xr.open_dataset(tas_file_hist)
-
+tas_file_hist = xr.open_mfdataset(tas_file_hist)
 tas_file_ssp1 = r"G:\Climate_Data\1_CMIP_DATA\2_CMIP6\2_CanESM5\tmp\ssp1_26\tas_Amon_CanESM5_ssp126_r1i1p1f1_gn_201501-210012.nc"
-tas_file_ssp1 = xr.open_dataset(tas_file_ssp1)
+tas_file_ssp1 = xr.open_mfdataset(tas_file_ssp1)
+
+# Precipitation files
+# For models with multiple decadal files, put an asterisk after the folder name e.g. "..historical\*.nc"
+pre_file_hist = r"G:\Climate_Data\1_CMIP_DATA\2_CMIP6\2_CanESM5\pre\historical\pr_Amon_CanESM5_historical_r1i1p1f1_gn_185001-201412.nc"
+pre_file_hist = xr.open_mfdataset(pre_file_hist)
+pre_file_ssp1 = r"G:\Climate_Data\1_CMIP_DATA\2_CMIP6\2_CanESM5\pre\ssp1_26\pr_Amon_CanESM5_ssp126_r1i1p1f1_gn_201501-210012.nc"
+pre_file_ssp1 = xr.open_mfdataset(pre_file_ssp1)
+
 print('Step 1 complete')
 
 ########################################################################################################
@@ -56,20 +64,63 @@ STEP 2: IMPORT CMIP CLIMATE DATA AND CALCULATE CLIMATE AVERAGES.
 tas_hist_slice = tas_file_hist.sel(time=slice("1961-01-16", "1990-12-16"))
 tas_ssp1_slice = tas_file_ssp1.sel(time=slice("2090-01-16", "2099-12-16")) 
 
+# Precipitation slices
+pre_hist_slice = pre_file_hist.sel(time=slice("1961-01-16", "1990-12-16"))
+pre_ssp1_slice = pre_file_ssp1.sel(time=slice("2090-01-16", "2099-12-16")) 
+
 """
-(2.2) Average climate values for study time period
+(2.2) Convert climate data into desired units and average climate values for study time period
 """
 # Temperature
-# GroupBy subdivides dataset into months before averaging. This code prodcues monthly mean temperatures.
+# GroupBy subdivides dataset into months before averaging. This code produces monthly mean temperatures.
 tas_hist_mean_monthly_K = tas_hist_slice['tas'].groupby("time.month").mean('time',keep_attrs=True)
 tas_ssp1_mean_monthly_K = tas_ssp1_slice['tas'].groupby("time.month").mean('time',keep_attrs=True)
 
-"""
-(2.2) Convert climate data into desired units
-"""
 # Convert from Kelvin to Celsius
 tas_hist_mean_monthly_C = tas_hist_mean_monthly_K-273.15
 tas_ssp1_mean_monthly_C = tas_ssp1_mean_monthly_K-273.15
+
+
+# Precipitation
+# Convert from mm/second to mm per day
+# 60 x 60 x 24 = 86,400 (one day)
+pre_hist_day = pre_hist_slice['pr'] * 86400.
+pre_ssp1_day = pre_ssp1_slice['pr'] * 86400.
+
+# Calculate the number of days in each month
+# adapted from http://xarray.pydata.org/en/stable/examples/monthly-means.html
+# Build a dictionary of calendars
+dpm = {'noleap': [0, 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31],
+       '365_day': [0, 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31],
+       'standard': [0, 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31],
+       'gregorian': [0, 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31],
+       'proleptic_gregorian': [0, 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31],
+       'all_leap': [0, 31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31],
+       '366_day': [0, 31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31],
+       '360_day': [0, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30]}
+
+# Define new function get_dpm
+def get_dpm(time, calendar='standard'):
+    """
+    return a array of days per month corresponding to the months provided in `months`
+    """
+    month_length = np.zeros(len(time), dtype=np.int)
+    cal_days = dpm[calendar]
+    for i, (month, year) in enumerate(zip(time.month, time.year)):
+        month_length[i] = cal_days[month]
+    return month_length
+
+# Use get_dpm to calculate the number of days in each month in slice
+# Time coordinates match those of the precipitation data
+pre_hist_month_length = xr.DataArray(get_dpm(pre_hist_day.time.to_index(), calendar='noleap'), coords=[pre_hist_day.time], name='month_length')
+pre_ssp1_month_length = xr.DataArray(get_dpm(pre_ssp1_day.time.to_index(), calendar='noleap'), coords=[pre_ssp1_day.time], name='month_length')
+# Multiply the days in the month by the precipitation value for that month
+pre_hist_mth= pre_hist_month_length * pre_hist_day
+pre_ssp1_mth= pre_ssp1_month_length * pre_ssp1_day
+
+# Average monthly precipitation values by month
+pre_hist_mean_mth = pre_hist_mth.groupby("time.month").mean('time',keep_attrs=True)
+pre_ssp1_mean_mth = pre_ssp1_mth.groupby("time.month").mean('time',keep_attrs=True)
 
 print('Step 2 Complete')
 
@@ -102,8 +153,8 @@ tas_hist_land_C = tas_hist_mean_monthly_C.where(land_perc.data > 50.) # selects 
 tas_ssp1_land_C = tas_ssp1_mean_monthly_C.where(land_perc.data > 50.) # selects all grid cells where land % is less than 50 %
 
 # Mask out preciptiation data
-#pre_hist_land_C = pre_hist_mean_monthly_mm.where(land_perc.data > 50.) # selects all grid cells where land % is less than 50 %
-#pre_ssp1_land_C = pre_ssp1_mean_monthly_mm.where(land_perc.data > 50.) # selects all grid cells where land % is less than 50 %
+pre_hist_land = pre_hist_mean_mth.where(land_perc.data > 50.) # selects all grid cells where land % is less than 50 %
+pre_ssp1_land = pre_ssp1_mean_mth.where(land_perc.data > 50.) # selects all grid cells where land % is less than 50 %
 
 print('Step 3 complete')
 
@@ -122,8 +173,8 @@ print('(4.1) Import CRU TS 4.03 datasets...')
 CRU_tmp_file = r"G:\Climate_Data\3_Observational_data\CRU data\CRU_TS_404\cru_ts4.04.1901.2019.tmp.dat.nc"
 CRU_tmp_dset = xr.open_mfdataset(CRU_tmp_file, combine='by_coords')
 # Load in observational precipitation dataset
-# CRU_pre_file =r"G:\Climate_Data\3_Observational_data\CRU data\CRU_TS_404\cru_ts4.04.1901.2019.pre.dat.nc"
-#CRU_pre_dset = xr.open_mfdataset(CRU_pre_file, combine='by_coords')
+CRU_pre_file =r"G:\Climate_Data\3_Observational_data\CRU data\CRU_TS_404\cru_ts4.04.1901.2019.pre.dat.nc"
+CRU_pre_dset = xr.open_mfdataset(CRU_pre_file, combine='by_coords')
 
 print('Step 4 complete')
 
@@ -134,8 +185,8 @@ Need to remove NaNs for interpolation step below.
 Use Poisson Equation solver with overrelaxation to extrapolate terrestrial data over ocean.
 """
 ########################################################################################################
-# 
 
+xxxxxxxxxxxxxxxx Got up to here
 # Use grid fill to extrapolate over ocean
 # Can  install gridfill manually from https://github.com/ajdawson/gridfill
 
