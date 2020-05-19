@@ -42,7 +42,7 @@ ssp1 = xr.open_mfdataset(tas_file_ssp1, combine='by_coords')
 ssp1_lat = ssp1.sel(lat=slice(50., 90.))
 
 # Export path for temperature files
-tmp_DIR = r'G:\Climate_Data\1_CMIP_DATA\2_CMIP6\1_NorESM2_MM\downscaled_outputs\excel_test\output_test_jan.csv'
+tmp_DIR = r'G:\Climate_Data\1_CMIP_DATA\2_CMIP6\1_NorESM2_MM\downscaled_outputs\excel_test\test_'
 
 df= ssp1_lat.to_dataframe() # produces a dataframe with 12 rows for each month for each site.
 # slicing to one month creates just one list of x,y,z - append on new months after? 
@@ -98,10 +98,20 @@ nov_df = nov_df.drop(["month", "height"], axis=1).rename(columns={"mean monthly 
 dec = ssp1.sel(month=12)
 dec_df= dec.to_dataframe()
 dec_df = dec_df.drop(["month", "height"], axis=1).rename(columns={"mean monthly near-surface temperature (degrees Celsius)": "Dec_MMT"})
+import sys
+#while True:
+answer = input('Do you want to continue?:')
+if answer.lower().startswith("y"):
+      print("ok, carry on then")
+      df_col = pd.concat([jan_df,feb_df, mar_df, apr_df, may_df, jun_df, jul_df, aug_df, sep_df, oct_df, nov_df, dec_df], axis=1)
+      df_col = df_col.reset_index()
+      df_col.index = df_col.index + 1
+      df_col.to_csv(tmp_DIR)
+elif answer.lower().startswith("n"):
+      print("ok, sayonnara")
+      sys.exit()
 
 
-df_col = pd.concat([jan_df,feb_df, mar_df, apr_df, may_df, jun_df, jul_df, aug_df, sep_df, oct_df, nov_df, dec_df], axis=1)
-df_col.to_csv(tmp_DIR)
 
 
 # Find way to add id column?

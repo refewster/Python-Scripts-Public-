@@ -508,7 +508,7 @@ SSP5_BCor_pre.to_netcdf(pre_DIR+'bcor_ssp5.nc')
 """
 (8.2) Output monthly climate values for each 0.5 degree grid cell as .csv
 """
-#print('(8.2) Data export to .csv...')
+print('(8.2) Data export to .csv...')
 
 
 

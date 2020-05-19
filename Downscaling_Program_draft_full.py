@@ -8,6 +8,9 @@ Start Date: 30/04/2020
 Most Recent Update: 18/05/2020
 
 """
+########################################################################################################
+########################################################################################################
+########################################################################################################
 """
 STEP 1: IMPORT LIBRARIES AND DATA FILES
 """
@@ -30,7 +33,7 @@ import iris
 print('Import complete')
 
 """
-(1.2) Create a list of required netCDF files.
+(1.2) Import required netCDF files and setup export directory.
 """
 print('(1.2) Importing data files...')
 # CMIP land-sea mask file
@@ -61,10 +64,6 @@ pre_file_ssp3 = xr.open_mfdataset(pre_file_ssp3, combine='by_coords')
 pre_file_ssp5 = r"G:\Climate_Data\1_CMIP_DATA\2_CMIP6\2_CanESM5\pre\ssp5_85\pr_Amon_CanESM5_ssp585_r1i1p1f1_gn_201501-210012.nc"
 pre_file_ssp5 = xr.open_mfdataset(pre_file_ssp5, combine='by_coords')
 
-
-"""
-(1.3) Import gridded observational data files
-"""
 print('(1.3) Import observational datasets...')
 
 # Load in observational temperature dataset
@@ -75,20 +74,18 @@ CRU_tmp_dset = xr.open_mfdataset(CRU_tmp_file, combine='by_coords')
 CRU_pre_file =r"G:\Climate_Data\3_Observational_data\CRU data\CRU_TS_404\cru_ts4.04.1901.2019.pre.dat.nc"
 CRU_pre_dset = xr.open_mfdataset(CRU_pre_file, combine='by_coords')
 
-
-"""
-(1.3) Import gridded observational data files
-"""
 print('(1.4) Setup export directory...')
 
 # Export path for temperature files
-tmp_DIR = r'G:\Climate_Data\1_CMIP_DATA\2_CMIP6\2_CanESM5\downscaled_outputs\CanESM5_downscaled_monthly_tas_'
-
+#tmp_DIR = r'G:\Climate_Data\1_CMIP_DATA\2_CMIP6\2_CanESM5\downscaled_outputs\CanESM5_downscaled_monthly_tas_'
+tmp_DIR = r'G:\Climate_Data\1_CMIP_DATA\2_CMIP6\1_NorESM2_MM\downscaled_outputs\excel_test\tas_test_'
 # Export path for precipitation files
-pre_DIR = r'G:\Climate_Data\1_CMIP_DATA\2_CMIP6\2_CanESM5\downscaled_outputs\CanESM5_downscaled_monthly_pre_'
-
+#pre_DIR = r'G:\Climate_Data\1_CMIP_DATA\2_CMIP6\2_CanESM5\downscaled_outputs\CanESM5_downscaled_monthly_pre_'
+pre_DIR = r'G:\Climate_Data\1_CMIP_DATA\2_CMIP6\1_NorESM2_MM\downscaled_outputs\excel_test\pre_test_'
 print('Step 1: Import and Setup complete')
 
+########################################################################################################
+########################################################################################################
 ########################################################################################################
 """
 STEP 2: IMPORT CMIP CLIMATE DATA AND CALCULATE CLIMATE AVERAGES.
@@ -277,20 +274,20 @@ print ('(4.2) Extrapolation of terrestrial climate over ocean...')
 # verbose = If *True* information about algorithm performance will be printed to stdout, if *False* nothing is printed. Defaults to *False*. [True]
 
 ## Backfill terrestrial climate over the ocean using gridfill.fill
-## Increase iterations to ~7000 for NorESM2
+## Increase iterations to ~12000 for NorESM2
 # Temperature
-tas_hist_land_Ciris_backfilled = gridfill.fill_cube(tas_hist_land_Ciris, 1e-3, 0.6, 7000, initzonal=True, verbose=True)
-tas_ssp1_land_Ciris_backfilled = gridfill.fill_cube(tas_ssp1_land_Ciris, 1e-3, 0.6, 7000, initzonal=True, verbose=True)
-tas_ssp2_land_Ciris_backfilled = gridfill.fill_cube(tas_ssp2_land_Ciris, 1e-3, 0.6, 7000, initzonal=True, verbose=True)
-tas_ssp3_land_Ciris_backfilled = gridfill.fill_cube(tas_ssp3_land_Ciris, 1e-3, 0.6, 7000, initzonal=True, verbose=True)
-tas_ssp5_land_Ciris_backfilled = gridfill.fill_cube(tas_ssp5_land_Ciris, 1e-3, 0.6, 7000, initzonal=True, verbose=True)
+tas_hist_land_Ciris_backfilled = gridfill.fill_cube(tas_hist_land_Ciris, 1e-3, 0.6, 12000, initzonal=True, verbose=True)
+tas_ssp1_land_Ciris_backfilled = gridfill.fill_cube(tas_ssp1_land_Ciris, 1e-3, 0.6, 12000, initzonal=True, verbose=True)
+tas_ssp2_land_Ciris_backfilled = gridfill.fill_cube(tas_ssp2_land_Ciris, 1e-3, 0.6, 12000, initzonal=True, verbose=True)
+tas_ssp3_land_Ciris_backfilled = gridfill.fill_cube(tas_ssp3_land_Ciris, 1e-3, 0.6, 12000, initzonal=True, verbose=True)
+tas_ssp5_land_Ciris_backfilled = gridfill.fill_cube(tas_ssp5_land_Ciris, 1e-3, 0.6, 12000, initzonal=True, verbose=True)
 
 # Precipitation
-pre_hist_land_iris_backfilled = gridfill.fill_cube(pre_hist_land_iris, 1e-3, 0.6, 7000, initzonal=True, verbose=True)
-pre_ssp1_land_iris_backfilled = gridfill.fill_cube(pre_ssp1_land_iris, 1e-3, 0.6, 7000, initzonal=True, verbose=True)
-pre_ssp2_land_iris_backfilled = gridfill.fill_cube(pre_ssp2_land_iris, 1e-3, 0.6, 7000, initzonal=True, verbose=True)
-pre_ssp3_land_iris_backfilled = gridfill.fill_cube(pre_ssp3_land_iris, 1e-3, 0.6, 7000, initzonal=True, verbose=True)
-pre_ssp5_land_iris_backfilled = gridfill.fill_cube(pre_ssp5_land_iris, 1e-3, 0.6, 7000, initzonal=True, verbose=True)
+pre_hist_land_iris_backfilled = gridfill.fill_cube(pre_hist_land_iris, 1e-3, 0.6, 12000, initzonal=True, verbose=True)
+pre_ssp1_land_iris_backfilled = gridfill.fill_cube(pre_ssp1_land_iris, 1e-3, 0.6, 12000, initzonal=True, verbose=True)
+pre_ssp2_land_iris_backfilled = gridfill.fill_cube(pre_ssp2_land_iris, 1e-3, 0.6, 12000, initzonal=True, verbose=True)
+pre_ssp3_land_iris_backfilled = gridfill.fill_cube(pre_ssp3_land_iris, 1e-3, 0.6, 12000, initzonal=True, verbose=True)
+pre_ssp5_land_iris_backfilled = gridfill.fill_cube(pre_ssp5_land_iris, 1e-3, 0.6, 12000, initzonal=True, verbose=True)
 
 print('Step 4: Extrapolation complete')
 
@@ -458,17 +455,23 @@ SSP5_BCor_pre = SSP5_BCor_pre.rename('mean monthly precipitation (mm)') # Rename
 (7.4) Subset to the region of interest
 """
 # Select only grid cells within the latitudinal bands:
-# Temperature
-#SSP1_BCor_tmp_lat_slice = SSP1_BCor_tmp.sel(lat=slice(50., 90.))
-#SSP2_BCor_tmp_lat_slice = SSP2_BCor_tmp.sel(lat=slice(50., 90.))
-#SSP3_BCor_tmp_lat_slice = SSP3_BCor_tmp.sel(lat=slice(50., 90.))
-#SSP5_BCor_tmp_lat_slice = SSP5_BCor_tmp.sel(lat=slice(50., 90.))
+answer = input('(OPTIONAL) Crop output to study region?:')
+if answer.lower().startswith("y"):
+      # Temperature
+      SSP1_BCor_tmp_lat_slice = SSP1_BCor_tmp.sel(lat=slice(50., 90.))
+      SSP2_BCor_tmp_lat_slice = SSP2_BCor_tmp.sel(lat=slice(50., 90.))
+      SSP3_BCor_tmp_lat_slice = SSP3_BCor_tmp.sel(lat=slice(50., 90.))
+      SSP5_BCor_tmp_lat_slice = SSP5_BCor_tmp.sel(lat=slice(50., 90.))
 
-# Preciptiation
-#SSP1_BCor_tmp_lat_slice = SSP1_BCor_tmp.sel(lat=slice(50., 90.))
-#SSP2_BCor_tmp_lat_slice = SSP2_BCor_tmp.sel(lat=slice(50., 90.))
-#SSP3_BCor_tmp_lat_slice = SSP3_BCor_tmp.sel(lat=slice(50., 90.))
-#SSP5_BCor_tmp_lat_slice = SSP5_BCor_tmp.sel(lat=slice(50., 90.))
+      # Preciptiation
+      SSP1_BCor_tmp_lat_slice = SSP1_BCor_tmp.sel(lat=slice(50., 90.))
+      SSP2_BCor_tmp_lat_slice = SSP2_BCor_tmp.sel(lat=slice(50., 90.))
+      SSP3_BCor_tmp_lat_slice = SSP3_BCor_tmp.sel(lat=slice(50., 90.))
+      SSP5_BCor_tmp_lat_slice = SSP5_BCor_tmp.sel(lat=slice(50., 90.))
+elif answer.lower().startswith("n"):
+    pass
+else:
+        print("Enter either yes/no")
 
 print("Step 7 complete")
 
@@ -477,45 +480,146 @@ print("Step 7 complete")
 STEP 8: OUTPUT RESULTS 
 """
 ########################################################################################################
-
 """
 (8.1) Exporting the results to netcdf format
 """
-print('(8.1) Data export to NetCDF...')
-# Prevent warnings from flashing up - turn off/on as desired
-np.warnings.filterwarnings('ignore')
 
-# Temperature files
-SSP1_tmp.to_netcdf(tmp_DIR+'ssp1.nc')
-SSP5_tmp.to_netcdf(tmp_DIR+'ssp5.nc')
-CMIP_hist_tmp.to_netcdf(tmp_DIR+'cmip_hist.nc')
-CRU_tmp.to_netcdf(tmp_DIR+'cru_1961_1990.nc')
-SSP1_BCor_tmp.to_netcdf(tmp_DIR+'bcor_ssp1.nc')
-SSP2_BCor_tmp.to_netcdf(tmp_DIR+'bcor_ssp2.nc')
-SSP3_BCor_tmp.to_netcdf(tmp_DIR+'bcor_ssp3.nc')
-SSP5_BCor_tmp.to_netcdf(tmp_DIR+'bcor_ssp5.nc')
-
-# Precipitation files
-SSP1_pre.to_netcdf(pre_DIR+'ssp1.nc')
-SSP5_pre.to_netcdf(pre_DIR+'ssp5.nc')
-CMIP_hist_pre.to_netcdf(pre_DIR+'cmip_hist.nc')
-CRU_pre.to_netcdf(pre_DIR+'cru_1961_1990.nc')
-SSP1_BCor_pre.to_netcdf(pre_DIR+'bcor_ssp1.nc')
-SSP2_BCor_pre.to_netcdf(pre_DIR+'bcor_ssp2.nc')
-SSP3_BCor_pre.to_netcdf(pre_DIR+'bcor_ssp3.nc')
-SSP5_BCor_pre.to_netcdf(pre_DIR+'bcor_ssp5.nc')
+import sys
+# Optional choice to export as netcdf or pass
+answer = input('(OPTIONAL) Export data files to netCDF?:')
+if answer.lower().startswith("y"):
+      print("(8.1) Data export to NetCDF...")
+      # Prevent warnings from flashing up - turn off/on as desired
+      # Turned off as no issue with 'true divide' (dividing by NaN).
+      np.warnings.filterwarnings('ignore')
+      # Temperature files
+      CMIP_hist_tmp.to_netcdf(tmp_DIR+'cmip_hist.nc')
+      CRU_tmp.to_netcdf(tmp_DIR+'cru_1961_1990.nc')
+      SSP1_BCor_tmp.to_netcdf(tmp_DIR+'bcor_ssp1.nc')
+      SSP2_BCor_tmp.to_netcdf(tmp_DIR+'bcor_ssp2.nc')
+      SSP3_BCor_tmp.to_netcdf(tmp_DIR+'bcor_ssp3.nc')
+      SSP5_BCor_tmp.to_netcdf(tmp_DIR+'bcor_ssp5.nc')
+      # Precipitation files
+      CMIP_hist_pre.to_netcdf(pre_DIR+'cmip_hist.nc')
+      CRU_pre.to_netcdf(pre_DIR+'cru_1961_1990.nc')
+      SSP1_BCor_pre.to_netcdf(pre_DIR+'bcor_ssp1.nc')
+      SSP2_BCor_pre.to_netcdf(pre_DIR+'bcor_ssp2.nc')
+      SSP3_BCor_pre.to_netcdf(pre_DIR+'bcor_ssp3.nc')
+      SSP5_BCor_pre.to_netcdf(pre_DIR+'bcor_ssp5.nc')
+      # Turn warnings back on
+      np.warnings.filterwarnings('default')
+elif answer.lower().startswith("n"):
+    pass
+else:
+        print("Enter either yes/no")
 
 """
-(8.2) Output monthly climate values for each 0.5 degree grid cell as .csv
+(8.2) Export the results as .csv
 """
 #print('(8.2) Data export to .csv...')
 
+# Optional choice to export as netcdf or pass
+answer = input('(OPTIONAL) Export data files to .csv?:')
+if answer.lower().startswith("y"):
+      print("(8.2) Data export to .csv...")
+      # Prevent warnings from flashing up - turn off/on as desired
+      # Temperature files
+      # Historical
+
+      # CRU
 
 
 
+      # SSP1 tmp
+      SSP1_tmp_jan = SSP1_BCor_tmp.sel(month=1) # select tas data from the first month
+      SSP1_tmp_jan_df= SSP1_tmp_jan.to_dataframe() # turn this data into a pandas dataframe
+      SSP1_tmp_jan_df = SSP1_tmp_jan_df.drop(["month", "height"], axis=1).rename(columns={"mean monthly near-surface temperature (degrees Celsius)": "Jan_MMT"}) # drop unnecessary columns, rename variable columns to month
+
+      SSP1_tmp_feb = SSP1_BCor_tmp.sel(month=2)
+      SSP1_tmp_feb_df= SSP1_tmp_feb.to_dataframe()
+      SSP1_tmp_feb_df = SSP1_tmp_feb_df.drop(["month", "height"], axis=1).rename(columns={"mean monthly near-surface temperature (degrees Celsius)": "Feb_MMT"})
+      
+      SSP1_tmp_mar = SSP1_BCor_tmp.sel(month=3)
+      SSP1_tmp_mar_df= SSP1_tmp_mar.to_dataframe()
+      SSP1_tmp_mar_df = SSP1_tmp_mar_df.drop(["month", "height"], axis=1).rename(columns={"mean monthly near-surface temperature (degrees Celsius)": "Mar_MMT"})
+      
+      SSP1_tmp_apr = SSP1_BCor_tmp.sel(month=4)
+      SSP1_tmp_apr_df= SSP1_tmp_apr.to_dataframe()
+      SSP1_tmp_apr_df = SSP1_tmp_apr_df.drop(["month", "height"], axis=1).rename(columns={"mean monthly near-surface temperature (degrees Celsius)": "Apr_MMT"})
+      
+      SSP1_tmp_may = SSP1_BCor_tmp.sel(month=5)
+      SSP1_tmp_may_df= SSP1_tmp_may.to_dataframe()
+      SSP1_tmp_may_df = SSP1_tmp_may_df.drop(["month", "height"], axis=1).rename(columns={"mean monthly near-surface temperature (degrees Celsius)": "May_MMT"})
+      
+      SSP1_tmp_jun = SSP1_BCor_tmp.sel(month=6)
+      SSP1_tmp_jun_df= SSP1_tmp_jun.to_dataframe()
+      SSP1_tmp_jun_df = SSP1_tmp_jun_df.drop(["month", "height"], axis=1).rename(columns={"mean monthly near-surface temperature (degrees Celsius)": "Jun_MMT"})
+      
+      SSP1_tmp_jul = SSP1_BCor_tmp.sel(month=7)
+      SSP1_tmp_jul_df= SSP1_tmp_jul.to_dataframe()
+      SSP1_tmp_jul_df = SSP1_tmp_jul_df.drop(["month", "height"], axis=1).rename(columns={"mean monthly near-surface temperature (degrees Celsius)": "Jul_MMT"})
+      
+      SSP1_tmp_aug = SSP1_BCor_tmp.sel(month=8)
+      SSP1_tmp_aug_df= SSP1_tmp_aug.to_dataframe()
+      SSP1_tmp_aug_df = SSP1_tmp_aug_df.drop(["month", "height"], axis=1).rename(columns={"mean monthly near-surface temperature (degrees Celsius)": "Aug_MMT"})
+      
+      SSP1_tmp_sep = SSP1_BCor_tmp.sel(month=9)
+      SSP1_tmp_sep_df= SSP1_tmp_sep.to_dataframe()
+      SSP1_tmp_sep_df = SSP1_tmp_sep_df.drop(["month", "height"], axis=1).rename(columns={"mean monthly near-surface temperature (degrees Celsius)": "Sep_MMT"})
+      
+      SSP1_tmp_oct = SSP1_BCor_tmp.sel(month=10)
+      SSP1_tmp_oct_df= SSP1_tmp_oct.to_dataframe()
+      SSP1_tmp_oct_df = SSP1_tmp_oct_df.drop(["month", "height"], axis=1).rename(columns={"mean monthly near-surface temperature (degrees Celsius)": "Oct_MMT"})
+      
+      SSP1_tmp_nov = SSP1_BCor_tmp.sel(month=11)
+      SSP1_tmp_nov_df= SSP1_tmp_nov.to_dataframe()
+      SSP1_tmp_nov_df = SSP1_tmp_nov_df.drop(["month", "height"], axis=1).rename(columns={"mean monthly near-surface temperature (degrees Celsius)": "Nov_MMT"})
+      
+      SSP1_tmp_dec = SSP1_BCor_tmp.sel(month=12)
+      SSP1_tmp_dec_df= SSP1_tmp_dec.to_dataframe()
+      SSP1_tmp_dec_df = SSP1_tmp_dec_df.drop(["month", "height"], axis=1).rename(columns={"mean monthly near-surface temperature (degrees Celsius)": "Dec_MMT"})
+      
+      SSP1_tmp_df = pd.concat([SSP1_tmp_jan_df, SSP1_tmp_feb_df, SSP1_tmp_mar_df, SSP1_tmp_apr_df, SSP1_tmp_may_df, SSP1_tmp_jun_df, SSP1_tmp_jul_df, SSP1_tmp_aug_df, SSP1_tmp_sep_df, SSP1_tmp_oct_df, SSP1_tmp_nov_df, SSP1_tmp_dec_df], axis=1) # add each variable as a column
+      SSP1_tmp_df = SSP1_tmp_df.reset_index() # add id column
+      SSP1_tmp_df.index = SSP1_tmp_df.index + 1 # start id index at 1, not 0
+      SSP1_tmp_df.to_csv(tmp_DIR+'bcor_ssp1_tmp.csv')
+      print('SSP1_tmp.csv complete')
+
+
+      # SSP2 tmp
+
+
+      # SSP3 tmp
+
+
+      # SSP5 tmp
+
+
+      
+      # Precipitation files
+      # Historical Data
+
+
+      # SSP1 pre
+
+
+      # SSP2 pre
+
+
+      # SSP3 pre
 
 
 
-print('Step 8: Data Export complete.')
+      # SSP5 pre
+
+
+      
+elif answer.lower().startswith("n"):
+    pass
+else:
+        print("Enter either yes/no")
+
+print('Step 8: Data Export complete')
 #########################################
 print('End.')
+sys.exit()
