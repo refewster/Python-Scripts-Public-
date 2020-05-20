@@ -1,11 +1,11 @@
 # -*- coding: cp1252 -*-
 ########################################################################################################
 """
-Program: Downscaling Program (DRAFT) + precip
+Program: Downscaling Program Full
 
 Author: Richard Fewster
 Start Date: 30/04/2020
-Most Recent Update: 18/05/2020
+Most Recent Update: 20/05/2020
 
 """
 ########################################################################################################
@@ -77,11 +77,11 @@ CRU_pre_dset = xr.open_mfdataset(CRU_pre_file, combine='by_coords')
 print('(1.4) Setup export directory...')
 
 # Export path for temperature files
-#tmp_DIR = r'G:\Climate_Data\1_CMIP_DATA\2_CMIP6\2_CanESM5\downscaled_outputs\CanESM5_downscaled_monthly_tas_'
-tmp_DIR = r'G:\Climate_Data\1_CMIP_DATA\2_CMIP6\1_NorESM2_MM\downscaled_outputs\excel_test\tas_test_'
+tmp_DIR = r'G:\Climate_Data\1_CMIP_DATA\2_CMIP6\2_CanESM5\downscaled_outputs\CanESM5_downscaled_monthly_tmp_'
+
 # Export path for precipitation files
-#pre_DIR = r'G:\Climate_Data\1_CMIP_DATA\2_CMIP6\2_CanESM5\downscaled_outputs\CanESM5_downscaled_monthly_pre_'
-pre_DIR = r'G:\Climate_Data\1_CMIP_DATA\2_CMIP6\1_NorESM2_MM\downscaled_outputs\excel_test\pre_test_'
+pre_DIR = r'G:\Climate_Data\1_CMIP_DATA\2_CMIP6\2_CanESM5\downscaled_outputs\CanESM5_downscaled_monthly_pre_'
+
 print('Step 1: Import and Setup complete')
 
 ########################################################################################################
@@ -458,18 +458,27 @@ SSP5_BCor_pre = SSP5_BCor_pre.rename('mean monthly precipitation (mm)') # Rename
 answer = input('(OPTIONAL) Crop output to study region?:')
 if answer.lower().startswith("y"):
       # Temperature
-      SSP1_BCor_tmp_lat_slice = SSP1_BCor_tmp.sel(lat=slice(50., 90.))
-      SSP2_BCor_tmp_lat_slice = SSP2_BCor_tmp.sel(lat=slice(50., 90.))
-      SSP3_BCor_tmp_lat_slice = SSP3_BCor_tmp.sel(lat=slice(50., 90.))
-      SSP5_BCor_tmp_lat_slice = SSP5_BCor_tmp.sel(lat=slice(50., 90.))
+      CMIP_hist_tmp = CMIP_hist_tmp.sel(lat=slice(50., 90.))
+      SSP1_BCor_tmp = SSP1_BCor_tmp.sel(lat=slice(50., 90.))
+      SSP2_BCor_tmp = SSP2_BCor_tmp.sel(lat=slice(50., 90.))
+      SSP3_BCor_tmp = SSP3_BCor_tmp.sel(lat=slice(50., 90.))
+      SSP5_BCor_tmp = SSP5_BCor_tmp.sel(lat=slice(50., 90.))
 
       # Preciptiation
-      SSP1_BCor_tmp_lat_slice = SSP1_BCor_tmp.sel(lat=slice(50., 90.))
-      SSP2_BCor_tmp_lat_slice = SSP2_BCor_tmp.sel(lat=slice(50., 90.))
-      SSP3_BCor_tmp_lat_slice = SSP3_BCor_tmp.sel(lat=slice(50., 90.))
-      SSP5_BCor_tmp_lat_slice = SSP5_BCor_tmp.sel(lat=slice(50., 90.))
+      CMIP_hist_pre = CMIP_hist_pre.sel(lat=slice(50., 90.))
+      SSP1_BCor_pre = SSP1_BCor_pre.sel(lat=slice(50., 90.))
+      SSP2_BCor_pre = SSP2_BCor_pre.sel(lat=slice(50., 90.))
+      SSP3_BCor_pre = SSP3_BCor_pre.sel(lat=slice(50., 90.))
+      SSP5_BCor_pre = SSP5_BCor_pre.sel(lat=slice(50., 90.))
+
+      tmp_DIR= tmp_DIR+'sliced_'
+      pre_DIR= pre_DIR+'sliced_'
+      
 elif answer.lower().startswith("n"):
-    pass
+    
+      tmp_DIR= tmp_DIR+'global_'
+      pre_DIR= pre_DIR+'global_'
+
 else:
         print("Enter either yes/no")
 
@@ -494,18 +503,30 @@ if answer.lower().startswith("y"):
       np.warnings.filterwarnings('ignore')
       # Temperature files
       CMIP_hist_tmp.to_netcdf(tmp_DIR+'cmip_hist.nc')
+      print('tmp_CMIP_hist.nc complete')
       CRU_tmp.to_netcdf(tmp_DIR+'cru_1961_1990.nc')
+      print('tmp_CRU_1961_1990.nc complete')
       SSP1_BCor_tmp.to_netcdf(tmp_DIR+'bcor_ssp1.nc')
+      print('tmp_bcor_ssp1.nc complete')
       SSP2_BCor_tmp.to_netcdf(tmp_DIR+'bcor_ssp2.nc')
+      print('tmp_bcor_ssp2.nc complete')
       SSP3_BCor_tmp.to_netcdf(tmp_DIR+'bcor_ssp3.nc')
+      print('tmp_bcor_ssp3.nc complete')
       SSP5_BCor_tmp.to_netcdf(tmp_DIR+'bcor_ssp5.nc')
+      print('tmp_bcor_ssp5.nc complete')
       # Precipitation files
       CMIP_hist_pre.to_netcdf(pre_DIR+'cmip_hist.nc')
+      print('pre_CMIP_hist.nc complete')
       CRU_pre.to_netcdf(pre_DIR+'cru_1961_1990.nc')
+      print('pre_CRU_1961_1990.nc complete')
       SSP1_BCor_pre.to_netcdf(pre_DIR+'bcor_ssp1.nc')
+      print('pre_bcor_ssp1.nc complete')
       SSP2_BCor_pre.to_netcdf(pre_DIR+'bcor_ssp2.nc')
+      print('pre_bcor_ssp2.nc complete')
       SSP3_BCor_pre.to_netcdf(pre_DIR+'bcor_ssp3.nc')
+      print('pre_bcor_ssp3.nc complete')
       SSP5_BCor_pre.to_netcdf(pre_DIR+'bcor_ssp5.nc')
+      print('pre_bcor_ssp5.nc complete')
       # Turn warnings back on
       np.warnings.filterwarnings('default')
 elif answer.lower().startswith("n"):
@@ -516,110 +537,586 @@ else:
 """
 (8.2) Export the results as .csv
 """
-#print('(8.2) Data export to .csv...')
-
 # Optional choice to export as netcdf or pass
 answer = input('(OPTIONAL) Export data files to .csv?:')
 if answer.lower().startswith("y"):
       print("(8.2) Data export to .csv...")
-      # Prevent warnings from flashing up - turn off/on as desired
-      # Temperature files
-      # Historical
+# Prevent warnings from flashing up - turn off/on as desired
+      np.warnings.filterwarnings('ignore')
+# Temperature files
+# Historical
+      CMIP_hist_tmp = CMIP_hist_tmp.rename('mean monthly near-surface temperature (degrees Celsius)') # ensure dataset is named
+      hist_tmp_jan = CMIP_hist_tmp.sel(month=1) # select tas data from the first month
+      hist_tmp_jan_df= hist_tmp_jan.to_dataframe() # turn this data into a pandas dataframe
+      hist_tmp_jan_df = hist_tmp_jan_df.drop(["month", "height"], axis=1).rename(columns={"mean monthly near-surface temperature (degrees Celsius)": "Jan_MMT"}) # drop unnecessary columns, rename variable columns to month
+      print('#')
+      hist_tmp_feb = CMIP_hist_tmp.sel(month=2)
+      hist_tmp_feb_df= hist_tmp_feb.to_dataframe()
+      hist_tmp_feb_df = hist_tmp_feb_df.drop(["month", "height"], axis=1).rename(columns={"mean monthly near-surface temperature (degrees Celsius)": "Feb_MMT"})
+      print('##')      
+      hist_tmp_mar = CMIP_hist_tmp.sel(month=3)
+      hist_tmp_mar_df= hist_tmp_mar.to_dataframe()
+      hist_tmp_mar_df = hist_tmp_mar_df.drop(["month", "height"], axis=1).rename(columns={"mean monthly near-surface temperature (degrees Celsius)": "Mar_MMT"})
+      print('###')      
+      hist_tmp_apr = CMIP_hist_tmp.sel(month=4)
+      hist_tmp_apr_df= hist_tmp_apr.to_dataframe()
+      hist_tmp_apr_df = hist_tmp_apr_df.drop(["month", "height"], axis=1).rename(columns={"mean monthly near-surface temperature (degrees Celsius)": "Apr_MMT"})
+      print('####')      
+      hist_tmp_may = CMIP_hist_tmp.sel(month=5)
+      hist_tmp_may_df= hist_tmp_may.to_dataframe()
+      hist_tmp_may_df = hist_tmp_may_df.drop(["month", "height"], axis=1).rename(columns={"mean monthly near-surface temperature (degrees Celsius)": "May_MMT"})
+      print('#####')      
+      hist_tmp_jun = CMIP_hist_tmp.sel(month=6)
+      hist_tmp_jun_df= hist_tmp_jun.to_dataframe()
+      hist_tmp_jun_df = hist_tmp_jun_df.drop(["month", "height"], axis=1).rename(columns={"mean monthly near-surface temperature (degrees Celsius)": "Jun_MMT"})
+      print('######')      
+      hist_tmp_jul = CMIP_hist_tmp.sel(month=7)
+      hist_tmp_jul_df= hist_tmp_jul.to_dataframe()
+      hist_tmp_jul_df = hist_tmp_jul_df.drop(["month", "height"], axis=1).rename(columns={"mean monthly near-surface temperature (degrees Celsius)": "Jul_MMT"})
+      print('#######')      
+      hist_tmp_aug = CMIP_hist_tmp.sel(month=8)
+      hist_tmp_aug_df= hist_tmp_aug.to_dataframe()
+      hist_tmp_aug_df = hist_tmp_aug_df.drop(["month", "height"], axis=1).rename(columns={"mean monthly near-surface temperature (degrees Celsius)": "Aug_MMT"})
+      print('########')      
+      hist_tmp_sep = CMIP_hist_tmp.sel(month=9)
+      hist_tmp_sep_df= hist_tmp_sep.to_dataframe()
+      hist_tmp_sep_df = hist_tmp_sep_df.drop(["month", "height"], axis=1).rename(columns={"mean monthly near-surface temperature (degrees Celsius)": "Sep_MMT"})
+      print('#########')      
+      hist_tmp_oct = CMIP_hist_tmp.sel(month=10)
+      hist_tmp_oct_df= hist_tmp_oct.to_dataframe()
+      hist_tmp_oct_df = hist_tmp_oct_df.drop(["month", "height"], axis=1).rename(columns={"mean monthly near-surface temperature (degrees Celsius)": "Oct_MMT"})
+      print('##########')      
+      hist_tmp_nov = CMIP_hist_tmp.sel(month=11)
+      hist_tmp_nov_df= hist_tmp_nov.to_dataframe()
+      hist_tmp_nov_df = hist_tmp_nov_df.drop(["month", "height"], axis=1).rename(columns={"mean monthly near-surface temperature (degrees Celsius)": "Nov_MMT"})
+      print('###########')      
+      hist_tmp_dec = CMIP_hist_tmp.sel(month=12)
+      hist_tmp_dec_df= hist_tmp_dec.to_dataframe()
+      hist_tmp_dec_df = hist_tmp_dec_df.drop(["month", "height"], axis=1).rename(columns={"mean monthly near-surface temperature (degrees Celsius)": "Dec_MMT"})
+      print('############')      
+      hist_tmp_df = pd.concat([hist_tmp_jan_df, hist_tmp_feb_df, hist_tmp_mar_df, hist_tmp_apr_df, hist_tmp_may_df, hist_tmp_jun_df, hist_tmp_jul_df, hist_tmp_aug_df, hist_tmp_sep_df, hist_tmp_oct_df, hist_tmp_nov_df, hist_tmp_dec_df], axis=1) # add each variable as a column
+      hist_tmp_df = hist_tmp_df.reset_index() # add id column
+      hist_tmp_df.index = hist_tmp_df.index + 1 # start id index at 1, not 0
+      hist_tmp_df.to_csv(tmp_DIR+'CMIP_hist.csv')
+      print('CMIP_hist_tmp.csv complete')
 
-      # CRU
 
-
-
-      # SSP1 tmp
+# SSP1 tmp
       SSP1_tmp_jan = SSP1_BCor_tmp.sel(month=1) # select tas data from the first month
       SSP1_tmp_jan_df= SSP1_tmp_jan.to_dataframe() # turn this data into a pandas dataframe
       SSP1_tmp_jan_df = SSP1_tmp_jan_df.drop(["month", "height"], axis=1).rename(columns={"mean monthly near-surface temperature (degrees Celsius)": "Jan_MMT"}) # drop unnecessary columns, rename variable columns to month
-
+      print('#')
       SSP1_tmp_feb = SSP1_BCor_tmp.sel(month=2)
       SSP1_tmp_feb_df= SSP1_tmp_feb.to_dataframe()
       SSP1_tmp_feb_df = SSP1_tmp_feb_df.drop(["month", "height"], axis=1).rename(columns={"mean monthly near-surface temperature (degrees Celsius)": "Feb_MMT"})
-      
+      print('##')
       SSP1_tmp_mar = SSP1_BCor_tmp.sel(month=3)
       SSP1_tmp_mar_df= SSP1_tmp_mar.to_dataframe()
       SSP1_tmp_mar_df = SSP1_tmp_mar_df.drop(["month", "height"], axis=1).rename(columns={"mean monthly near-surface temperature (degrees Celsius)": "Mar_MMT"})
-      
+      print('###')
       SSP1_tmp_apr = SSP1_BCor_tmp.sel(month=4)
       SSP1_tmp_apr_df= SSP1_tmp_apr.to_dataframe()
       SSP1_tmp_apr_df = SSP1_tmp_apr_df.drop(["month", "height"], axis=1).rename(columns={"mean monthly near-surface temperature (degrees Celsius)": "Apr_MMT"})
-      
+      print('####')
       SSP1_tmp_may = SSP1_BCor_tmp.sel(month=5)
       SSP1_tmp_may_df= SSP1_tmp_may.to_dataframe()
       SSP1_tmp_may_df = SSP1_tmp_may_df.drop(["month", "height"], axis=1).rename(columns={"mean monthly near-surface temperature (degrees Celsius)": "May_MMT"})
-      
+      print('#####')
       SSP1_tmp_jun = SSP1_BCor_tmp.sel(month=6)
       SSP1_tmp_jun_df= SSP1_tmp_jun.to_dataframe()
       SSP1_tmp_jun_df = SSP1_tmp_jun_df.drop(["month", "height"], axis=1).rename(columns={"mean monthly near-surface temperature (degrees Celsius)": "Jun_MMT"})
-      
+      print('######')
       SSP1_tmp_jul = SSP1_BCor_tmp.sel(month=7)
       SSP1_tmp_jul_df= SSP1_tmp_jul.to_dataframe()
       SSP1_tmp_jul_df = SSP1_tmp_jul_df.drop(["month", "height"], axis=1).rename(columns={"mean monthly near-surface temperature (degrees Celsius)": "Jul_MMT"})
-      
+      print('#######')
       SSP1_tmp_aug = SSP1_BCor_tmp.sel(month=8)
       SSP1_tmp_aug_df= SSP1_tmp_aug.to_dataframe()
       SSP1_tmp_aug_df = SSP1_tmp_aug_df.drop(["month", "height"], axis=1).rename(columns={"mean monthly near-surface temperature (degrees Celsius)": "Aug_MMT"})
-      
+      print('########')
       SSP1_tmp_sep = SSP1_BCor_tmp.sel(month=9)
       SSP1_tmp_sep_df= SSP1_tmp_sep.to_dataframe()
       SSP1_tmp_sep_df = SSP1_tmp_sep_df.drop(["month", "height"], axis=1).rename(columns={"mean monthly near-surface temperature (degrees Celsius)": "Sep_MMT"})
-      
+      print('#########')
       SSP1_tmp_oct = SSP1_BCor_tmp.sel(month=10)
       SSP1_tmp_oct_df= SSP1_tmp_oct.to_dataframe()
       SSP1_tmp_oct_df = SSP1_tmp_oct_df.drop(["month", "height"], axis=1).rename(columns={"mean monthly near-surface temperature (degrees Celsius)": "Oct_MMT"})
-      
+      print('##########')
       SSP1_tmp_nov = SSP1_BCor_tmp.sel(month=11)
       SSP1_tmp_nov_df= SSP1_tmp_nov.to_dataframe()
       SSP1_tmp_nov_df = SSP1_tmp_nov_df.drop(["month", "height"], axis=1).rename(columns={"mean monthly near-surface temperature (degrees Celsius)": "Nov_MMT"})
-      
+      print('###########')
       SSP1_tmp_dec = SSP1_BCor_tmp.sel(month=12)
       SSP1_tmp_dec_df= SSP1_tmp_dec.to_dataframe()
       SSP1_tmp_dec_df = SSP1_tmp_dec_df.drop(["month", "height"], axis=1).rename(columns={"mean monthly near-surface temperature (degrees Celsius)": "Dec_MMT"})
-      
+      print('############')
       SSP1_tmp_df = pd.concat([SSP1_tmp_jan_df, SSP1_tmp_feb_df, SSP1_tmp_mar_df, SSP1_tmp_apr_df, SSP1_tmp_may_df, SSP1_tmp_jun_df, SSP1_tmp_jul_df, SSP1_tmp_aug_df, SSP1_tmp_sep_df, SSP1_tmp_oct_df, SSP1_tmp_nov_df, SSP1_tmp_dec_df], axis=1) # add each variable as a column
       SSP1_tmp_df = SSP1_tmp_df.reset_index() # add id column
       SSP1_tmp_df.index = SSP1_tmp_df.index + 1 # start id index at 1, not 0
-      SSP1_tmp_df.to_csv(tmp_DIR+'bcor_ssp1_tmp.csv')
+      SSP1_tmp_df.to_csv(tmp_DIR+'bcor_ssp1.csv')
       print('SSP1_tmp.csv complete')
 
 
-      # SSP2 tmp
+# SSP2 tmp
+      SSP2_tmp_jan = SSP2_BCor_tmp.sel(month=1) # select tas data from the first month
+      SSP2_tmp_jan_df= SSP2_tmp_jan.to_dataframe() # turn this data into a pandas dataframe
+      SSP2_tmp_jan_df = SSP2_tmp_jan_df.drop(["month", "height"], axis=1).rename(columns={"mean monthly near-surface temperature (degrees Celsius)": "Jan_MMT"}) # drop unnecessary columns, rename variable columns to month
+      print('#')
+      SSP2_tmp_feb = SSP2_BCor_tmp.sel(month=2)
+      SSP2_tmp_feb_df= SSP2_tmp_feb.to_dataframe()
+      SSP2_tmp_feb_df = SSP2_tmp_feb_df.drop(["month", "height"], axis=1).rename(columns={"mean monthly near-surface temperature (degrees Celsius)": "Feb_MMT"})
+      print('##')
+      SSP2_tmp_mar = SSP2_BCor_tmp.sel(month=3)
+      SSP2_tmp_mar_df= SSP2_tmp_mar.to_dataframe()
+      SSP2_tmp_mar_df = SSP2_tmp_mar_df.drop(["month", "height"], axis=1).rename(columns={"mean monthly near-surface temperature (degrees Celsius)": "Mar_MMT"})
+      print('###')
+      SSP2_tmp_apr = SSP2_BCor_tmp.sel(month=4)
+      SSP2_tmp_apr_df= SSP2_tmp_apr.to_dataframe()
+      SSP2_tmp_apr_df = SSP2_tmp_apr_df.drop(["month", "height"], axis=1).rename(columns={"mean monthly near-surface temperature (degrees Celsius)": "Apr_MMT"})
+      print('####')
+      SSP2_tmp_may = SSP2_BCor_tmp.sel(month=5)
+      SSP2_tmp_may_df= SSP2_tmp_may.to_dataframe()
+      SSP2_tmp_may_df = SSP2_tmp_may_df.drop(["month", "height"], axis=1).rename(columns={"mean monthly near-surface temperature (degrees Celsius)": "May_MMT"})
+      print('#####')
+      SSP2_tmp_jun = SSP2_BCor_tmp.sel(month=6)
+      SSP2_tmp_jun_df= SSP2_tmp_jun.to_dataframe()
+      SSP2_tmp_jun_df = SSP2_tmp_jun_df.drop(["month", "height"], axis=1).rename(columns={"mean monthly near-surface temperature (degrees Celsius)": "Jun_MMT"})
+      print('######')
+      SSP2_tmp_jul = SSP2_BCor_tmp.sel(month=7)
+      SSP2_tmp_jul_df= SSP2_tmp_jul.to_dataframe()
+      SSP2_tmp_jul_df = SSP2_tmp_jul_df.drop(["month", "height"], axis=1).rename(columns={"mean monthly near-surface temperature (degrees Celsius)": "Jul_MMT"})
+      print('#######')
+      SSP2_tmp_aug = SSP2_BCor_tmp.sel(month=8)
+      SSP2_tmp_aug_df= SSP2_tmp_aug.to_dataframe()
+      SSP2_tmp_aug_df = SSP2_tmp_aug_df.drop(["month", "height"], axis=1).rename(columns={"mean monthly near-surface temperature (degrees Celsius)": "Aug_MMT"})
+      print('########')
+      SSP2_tmp_sep = SSP2_BCor_tmp.sel(month=9)
+      SSP2_tmp_sep_df= SSP2_tmp_sep.to_dataframe()
+      SSP2_tmp_sep_df = SSP2_tmp_sep_df.drop(["month", "height"], axis=1).rename(columns={"mean monthly near-surface temperature (degrees Celsius)": "Sep_MMT"})
+      print('#########')
+      SSP2_tmp_oct = SSP2_BCor_tmp.sel(month=10)
+      SSP2_tmp_oct_df= SSP2_tmp_oct.to_dataframe()
+      SSP2_tmp_oct_df = SSP2_tmp_oct_df.drop(["month", "height"], axis=1).rename(columns={"mean monthly near-surface temperature (degrees Celsius)": "Oct_MMT"})
+      print('##########')
+      SSP2_tmp_nov = SSP2_BCor_tmp.sel(month=11)
+      SSP2_tmp_nov_df= SSP2_tmp_nov.to_dataframe()
+      SSP2_tmp_nov_df = SSP2_tmp_nov_df.drop(["month", "height"], axis=1).rename(columns={"mean monthly near-surface temperature (degrees Celsius)": "Nov_MMT"})
+      print('###########')
+      SSP2_tmp_dec = SSP2_BCor_tmp.sel(month=12)
+      SSP2_tmp_dec_df= SSP2_tmp_dec.to_dataframe()
+      SSP2_tmp_dec_df = SSP2_tmp_dec_df.drop(["month", "height"], axis=1).rename(columns={"mean monthly near-surface temperature (degrees Celsius)": "Dec_MMT"})
+      print('############')
+      SSP2_tmp_df = pd.concat([SSP2_tmp_jan_df, SSP2_tmp_feb_df, SSP2_tmp_mar_df, SSP2_tmp_apr_df, SSP2_tmp_may_df, SSP2_tmp_jun_df, SSP2_tmp_jul_df, SSP2_tmp_aug_df, SSP2_tmp_sep_df, SSP2_tmp_oct_df, SSP2_tmp_nov_df, SSP2_tmp_dec_df], axis=1) # add each variable as a column
+      SSP2_tmp_df = SSP2_tmp_df.reset_index() # add id column
+      SSP2_tmp_df.index = SSP2_tmp_df.index + 1 # start id index at 1, not 0
+      SSP2_tmp_df.to_csv(tmp_DIR+'bcor_ssp2.csv')
+      print('SSP2_tmp.csv complete')
 
 
-      # SSP3 tmp
-
+# SSP3 tmp
+      SSP3_tmp_jan = SSP3_BCor_tmp.sel(month=1) # select tas data from the first month
+      SSP3_tmp_jan_df= SSP3_tmp_jan.to_dataframe() # turn this data into a pandas dataframe
+      SSP3_tmp_jan_df = SSP3_tmp_jan_df.drop(["month", "height"], axis=1).rename(columns={"mean monthly near-surface temperature (degrees Celsius)": "Jan_MMT"}) # drop unnecessary columns, rename variable columns to month
+      print('#')
+      SSP3_tmp_feb = SSP3_BCor_tmp.sel(month=2)
+      SSP3_tmp_feb_df= SSP3_tmp_feb.to_dataframe()
+      SSP3_tmp_feb_df = SSP3_tmp_feb_df.drop(["month", "height"], axis=1).rename(columns={"mean monthly near-surface temperature (degrees Celsius)": "Feb_MMT"})
+      print('##')
+      SSP3_tmp_mar = SSP3_BCor_tmp.sel(month=3)
+      SSP3_tmp_mar_df= SSP3_tmp_mar.to_dataframe()
+      SSP3_tmp_mar_df = SSP3_tmp_mar_df.drop(["month", "height"], axis=1).rename(columns={"mean monthly near-surface temperature (degrees Celsius)": "Mar_MMT"})
+      print('###')
+      SSP3_tmp_apr = SSP3_BCor_tmp.sel(month=4)
+      SSP3_tmp_apr_df= SSP3_tmp_apr.to_dataframe()
+      SSP3_tmp_apr_df = SSP3_tmp_apr_df.drop(["month", "height"], axis=1).rename(columns={"mean monthly near-surface temperature (degrees Celsius)": "Apr_MMT"})
+      print('####')
+      SSP3_tmp_may = SSP3_BCor_tmp.sel(month=5)
+      SSP3_tmp_may_df= SSP3_tmp_may.to_dataframe()
+      SSP3_tmp_may_df = SSP3_tmp_may_df.drop(["month", "height"], axis=1).rename(columns={"mean monthly near-surface temperature (degrees Celsius)": "May_MMT"})
+      print('#####')
+      SSP3_tmp_jun = SSP3_BCor_tmp.sel(month=6)
+      SSP3_tmp_jun_df= SSP3_tmp_jun.to_dataframe()
+      SSP3_tmp_jun_df = SSP3_tmp_jun_df.drop(["month", "height"], axis=1).rename(columns={"mean monthly near-surface temperature (degrees Celsius)": "Jun_MMT"})
+      print('######')
+      SSP3_tmp_jul = SSP3_BCor_tmp.sel(month=7)
+      SSP3_tmp_jul_df= SSP3_tmp_jul.to_dataframe()
+      SSP3_tmp_jul_df = SSP3_tmp_jul_df.drop(["month", "height"], axis=1).rename(columns={"mean monthly near-surface temperature (degrees Celsius)": "Jul_MMT"})
+      print('#######')
+      SSP3_tmp_aug = SSP3_BCor_tmp.sel(month=8)
+      SSP3_tmp_aug_df= SSP3_tmp_aug.to_dataframe()
+      SSP3_tmp_aug_df = SSP3_tmp_aug_df.drop(["month", "height"], axis=1).rename(columns={"mean monthly near-surface temperature (degrees Celsius)": "Aug_MMT"})
+      print('########')
+      SSP3_tmp_sep = SSP3_BCor_tmp.sel(month=9)
+      SSP3_tmp_sep_df= SSP3_tmp_sep.to_dataframe()
+      SSP3_tmp_sep_df = SSP3_tmp_sep_df.drop(["month", "height"], axis=1).rename(columns={"mean monthly near-surface temperature (degrees Celsius)": "Sep_MMT"})
+      print('#########')
+      SSP3_tmp_oct = SSP3_BCor_tmp.sel(month=10)
+      SSP3_tmp_oct_df= SSP3_tmp_oct.to_dataframe()
+      SSP3_tmp_oct_df = SSP3_tmp_oct_df.drop(["month", "height"], axis=1).rename(columns={"mean monthly near-surface temperature (degrees Celsius)": "Oct_MMT"})
+      print('##########')
+      SSP3_tmp_nov = SSP3_BCor_tmp.sel(month=11)
+      SSP3_tmp_nov_df= SSP3_tmp_nov.to_dataframe()
+      SSP3_tmp_nov_df = SSP3_tmp_nov_df.drop(["month", "height"], axis=1).rename(columns={"mean monthly near-surface temperature (degrees Celsius)": "Nov_MMT"})
+      print('###########')
+      SSP3_tmp_dec = SSP3_BCor_tmp.sel(month=12)
+      SSP3_tmp_dec_df= SSP3_tmp_dec.to_dataframe()
+      SSP3_tmp_dec_df = SSP3_tmp_dec_df.drop(["month", "height"], axis=1).rename(columns={"mean monthly near-surface temperature (degrees Celsius)": "Dec_MMT"})
+      print('############')
+      SSP3_tmp_df = pd.concat([SSP3_tmp_jan_df, SSP3_tmp_feb_df, SSP3_tmp_mar_df, SSP3_tmp_apr_df, SSP3_tmp_may_df, SSP3_tmp_jun_df, SSP3_tmp_jul_df, SSP3_tmp_aug_df, SSP3_tmp_sep_df, SSP3_tmp_oct_df, SSP3_tmp_nov_df, SSP3_tmp_dec_df], axis=1) # add each variable as a column
+      SSP3_tmp_df = SSP3_tmp_df.reset_index() # add id column
+      SSP3_tmp_df.index = SSP3_tmp_df.index + 1 # start id index at 1, not 0
+      SSP3_tmp_df.to_csv(tmp_DIR+'bcor_ssp3.csv')
+      print('SSP3_tmp.csv complete')
+      
 
       # SSP5 tmp
+      SSP5_tmp_jan = SSP5_BCor_tmp.sel(month=1) # select tas data from the first month
+      SSP5_tmp_jan_df= SSP5_tmp_jan.to_dataframe() # turn this data into a pandas dataframe
+      SSP5_tmp_jan_df = SSP5_tmp_jan_df.drop(["month", "height"], axis=1).rename(columns={"mean monthly near-surface temperature (degrees Celsius)": "Jan_MMT"}) # drop unnecessary columns, rename variable columns to month
+      print('#')
+      SSP5_tmp_feb = SSP5_BCor_tmp.sel(month=2)
+      SSP5_tmp_feb_df= SSP5_tmp_feb.to_dataframe()
+      SSP5_tmp_feb_df = SSP5_tmp_feb_df.drop(["month", "height"], axis=1).rename(columns={"mean monthly near-surface temperature (degrees Celsius)": "Feb_MMT"})
+      print('##')
+      SSP5_tmp_mar = SSP5_BCor_tmp.sel(month=3)
+      SSP5_tmp_mar_df= SSP5_tmp_mar.to_dataframe()
+      SSP5_tmp_mar_df = SSP5_tmp_mar_df.drop(["month", "height"], axis=1).rename(columns={"mean monthly near-surface temperature (degrees Celsius)": "Mar_MMT"})
+      print('###')
+      SSP5_tmp_apr = SSP5_BCor_tmp.sel(month=4)
+      SSP5_tmp_apr_df= SSP5_tmp_apr.to_dataframe()
+      SSP5_tmp_apr_df = SSP5_tmp_apr_df.drop(["month", "height"], axis=1).rename(columns={"mean monthly near-surface temperature (degrees Celsius)": "Apr_MMT"})
+      print('####')
+      SSP5_tmp_may = SSP5_BCor_tmp.sel(month=5)
+      SSP5_tmp_may_df= SSP5_tmp_may.to_dataframe()
+      SSP5_tmp_may_df = SSP5_tmp_may_df.drop(["month", "height"], axis=1).rename(columns={"mean monthly near-surface temperature (degrees Celsius)": "May_MMT"})
+      print('#####')
+      SSP5_tmp_jun = SSP5_BCor_tmp.sel(month=6)
+      SSP5_tmp_jun_df= SSP5_tmp_jun.to_dataframe()
+      SSP5_tmp_jun_df = SSP5_tmp_jun_df.drop(["month", "height"], axis=1).rename(columns={"mean monthly near-surface temperature (degrees Celsius)": "Jun_MMT"})
+      print('######')
+      SSP5_tmp_jul = SSP5_BCor_tmp.sel(month=7)
+      SSP5_tmp_jul_df= SSP5_tmp_jul.to_dataframe()
+      SSP5_tmp_jul_df = SSP5_tmp_jul_df.drop(["month", "height"], axis=1).rename(columns={"mean monthly near-surface temperature (degrees Celsius)": "Jul_MMT"})
+      print('#######')
+      SSP5_tmp_aug = SSP5_BCor_tmp.sel(month=8)
+      SSP5_tmp_aug_df= SSP5_tmp_aug.to_dataframe()
+      SSP5_tmp_aug_df = SSP5_tmp_aug_df.drop(["month", "height"], axis=1).rename(columns={"mean monthly near-surface temperature (degrees Celsius)": "Aug_MMT"})
+      print('########')
+      SSP5_tmp_sep = SSP5_BCor_tmp.sel(month=9)
+      SSP5_tmp_sep_df= SSP5_tmp_sep.to_dataframe()
+      SSP5_tmp_sep_df = SSP5_tmp_sep_df.drop(["month", "height"], axis=1).rename(columns={"mean monthly near-surface temperature (degrees Celsius)": "Sep_MMT"})
+      print('#########')
+      SSP5_tmp_oct = SSP5_BCor_tmp.sel(month=10)
+      SSP5_tmp_oct_df= SSP5_tmp_oct.to_dataframe()
+      SSP5_tmp_oct_df = SSP5_tmp_oct_df.drop(["month", "height"], axis=1).rename(columns={"mean monthly near-surface temperature (degrees Celsius)": "Oct_MMT"})
+      print('##########')
+      SSP5_tmp_nov = SSP5_BCor_tmp.sel(month=11)
+      SSP5_tmp_nov_df= SSP5_tmp_nov.to_dataframe()
+      SSP5_tmp_nov_df = SSP5_tmp_nov_df.drop(["month", "height"], axis=1).rename(columns={"mean monthly near-surface temperature (degrees Celsius)": "Nov_MMT"})
+      print('###########')
+      SSP5_tmp_dec = SSP5_BCor_tmp.sel(month=12)
+      SSP5_tmp_dec_df= SSP5_tmp_dec.to_dataframe()
+      SSP5_tmp_dec_df = SSP5_tmp_dec_df.drop(["month", "height"], axis=1).rename(columns={"mean monthly near-surface temperature (degrees Celsius)": "Dec_MMT"})
+      print('############')
+      SSP5_tmp_df = pd.concat([SSP5_tmp_jan_df, SSP5_tmp_feb_df, SSP5_tmp_mar_df, SSP5_tmp_apr_df, SSP5_tmp_may_df, SSP5_tmp_jun_df, SSP5_tmp_jul_df, SSP5_tmp_aug_df, SSP5_tmp_sep_df, SSP5_tmp_oct_df, SSP5_tmp_nov_df, SSP5_tmp_dec_df], axis=1) # add each variable as a column
+      SSP5_tmp_df = SSP5_tmp_df.reset_index() # add id column
+      SSP5_tmp_df.index = SSP5_tmp_df.index + 1 # start id index at 1, not 0
+      SSP5_tmp_df.to_csv(tmp_DIR+'bcor_ssp5.csv')
+      print('SSP5_tmp.csv complete')
 
 
+# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #    
+# Precipitation files
+# Historical 
+      CMIP_hist_pre = CMIP_hist_pre.rename('mean monthly precipitation (mm)') # ensure dataset is named
+      hist_pre_jan = CMIP_hist_pre.sel(month=1) # select pre data from the first month
+      hist_pre_jan_df= hist_pre_jan.to_dataframe() # turn this data into a pandas dataframe
+      hist_pre_jan_df = hist_pre_jan_df.drop(["month"], axis=1).rename(columns={"mean monthly precipitation (mm)": "Jan_pre"}) # drop unnecessary columns, rename variable columns to month
+      print('#')
+      hist_pre_feb = CMIP_hist_pre.sel(month=2)
+      hist_pre_feb_df= hist_pre_feb.to_dataframe()
+      hist_pre_feb_df = hist_pre_feb_df.drop(["month"], axis=1).rename(columns={"mean monthly precipitation (mm)": "Feb_pre"})
+      print('##')
+      hist_pre_mar = CMIP_hist_pre.sel(month=3)
+      hist_pre_mar_df= hist_pre_mar.to_dataframe()
+      hist_pre_mar_df = hist_pre_mar_df.drop(["month"], axis=1).rename(columns={"mean monthly precipitation (mm)": "Mar_pre"})
+      print('###')
+      hist_pre_apr = CMIP_hist_pre.sel(month=4)
+      hist_pre_apr_df= hist_pre_apr.to_dataframe()
+      hist_pre_apr_df = hist_pre_apr_df.drop(["month"], axis=1).rename(columns={"mean monthly precipitation (mm)": "Apr_pre"})
+      print('####')
+      hist_pre_may = CMIP_hist_pre.sel(month=5)
+      hist_pre_may_df= hist_pre_may.to_dataframe()
+      hist_pre_may_df = hist_pre_may_df.drop(["month"], axis=1).rename(columns={"mean monthly precipitation (mm)": "May_pre"})
+      print('#####')
+      hist_pre_jun = CMIP_hist_pre.sel(month=6)
+      hist_pre_jun_df= hist_pre_jun.to_dataframe()
+      hist_pre_jun_df = hist_pre_jun_df.drop(["month"], axis=1).rename(columns={"mean monthly precipitation (mm)": "Jun_pre"})
+      print('######')
+      hist_pre_jul = CMIP_hist_pre.sel(month=7)
+      hist_pre_jul_df= hist_pre_jul.to_dataframe()
+      hist_pre_jul_df = hist_pre_jul_df.drop(["month"], axis=1).rename(columns={"mean monthly precipitation (mm)": "Jul_pre"})
+      print('#######')
+      hist_pre_aug = CMIP_hist_pre.sel(month=8)
+      hist_pre_aug_df= hist_pre_aug.to_dataframe()
+      hist_pre_aug_df = hist_pre_aug_df.drop(["month"], axis=1).rename(columns={"mean monthly precipitation (mm)": "Aug_pre"})
+      print('########')
+      hist_pre_sep = CMIP_hist_pre.sel(month=9)
+      hist_pre_sep_df= hist_pre_sep.to_dataframe()
+      hist_pre_sep_df = hist_pre_sep_df.drop(["month"], axis=1).rename(columns={"mean monthly precipitation (mm)": "Sep_pre"})
+      print('#########')
+      hist_pre_oct = CMIP_hist_pre.sel(month=10)
+      hist_pre_oct_df= hist_pre_oct.to_dataframe()
+      hist_pre_oct_df = hist_pre_oct_df.drop(["month"], axis=1).rename(columns={"mean monthly precipitation (mm)": "Oct_pre"})
+      print('##########')
+      hist_pre_nov = CMIP_hist_pre.sel(month=11)
+      hist_pre_nov_df= hist_pre_nov.to_dataframe()
+      hist_pre_nov_df = hist_pre_nov_df.drop(["month"], axis=1).rename(columns={"mean monthly precipitation (mm)": "Nov_pre"})
+      print('###########')
+      hist_pre_dec = CMIP_hist_pre.sel(month=12)
+      hist_pre_dec_df= hist_pre_dec.to_dataframe()
+      hist_pre_dec_df = hist_pre_dec_df.drop(["month"], axis=1).rename(columns={"mean monthly precipitation (mm)": "Dec_pre"})
+      print('############')
+      hist_pre_df = pd.concat([hist_pre_jan_df, hist_pre_feb_df, hist_pre_mar_df, hist_pre_apr_df, hist_pre_may_df, hist_pre_jun_df, hist_pre_jul_df, hist_pre_aug_df, hist_pre_sep_df, hist_pre_oct_df, hist_pre_nov_df, hist_pre_dec_df], axis=1) # add each variable as a column
+      hist_pre_df = hist_pre_df.reset_index() # add id column
+      hist_pre_df.index = hist_pre_df.index + 1 # start id index at 1, not 0
+      hist_pre_df.to_csv(pre_DIR+'CMIP_hist.csv')
+      print('CMIP_hist_pre.csv complete')
       
-      # Precipitation files
-      # Historical Data
+
+# SSP1 pre
+      SSP1_pre_jan = SSP1_BCor_pre.sel(month=1) # select pre data from the first month
+      SSP1_pre_jan_df= SSP1_pre_jan.to_dataframe() # turn this data into a pandas dataframe
+      SSP1_pre_jan_df = SSP1_pre_jan_df.drop(["month"], axis=1).rename(columns={"mean monthly precipitation (mm)": "Jan_pre"}) # drop unnecessary columns, rename variable columns to month
+      print('#')
+      SSP1_pre_feb = SSP1_BCor_pre.sel(month=2)
+      SSP1_pre_feb_df= SSP1_pre_feb.to_dataframe()
+      SSP1_pre_feb_df = SSP1_pre_feb_df.drop(["month"], axis=1).rename(columns={"mean monthly precipitation (mm)": "Feb_pre"})
+      print('##')
+      SSP1_pre_mar = SSP1_BCor_pre.sel(month=3)
+      SSP1_pre_mar_df= SSP1_pre_mar.to_dataframe()
+      SSP1_pre_mar_df = SSP1_pre_mar_df.drop(["month"], axis=1).rename(columns={"mean monthly precipitation (mm)": "Mar_pre"})
+      print('###')
+      SSP1_pre_apr = SSP1_BCor_pre.sel(month=4)
+      SSP1_pre_apr_df= SSP1_pre_apr.to_dataframe()
+      SSP1_pre_apr_df = SSP1_pre_apr_df.drop(["month"], axis=1).rename(columns={"mean monthly precipitation (mm)": "Apr_pre"})
+      print('####')
+      SSP1_pre_may = SSP1_BCor_pre.sel(month=5)
+      SSP1_pre_may_df= SSP1_pre_may.to_dataframe()
+      SSP1_pre_may_df = SSP1_pre_may_df.drop(["month"], axis=1).rename(columns={"mean monthly precipitation (mm)": "May_pre"})
+      print('#####')
+      SSP1_pre_jun = SSP1_BCor_pre.sel(month=6)
+      SSP1_pre_jun_df= SSP1_pre_jun.to_dataframe()
+      SSP1_pre_jun_df = SSP1_pre_jun_df.drop(["month"], axis=1).rename(columns={"mean monthly precipitation (mm)": "Jun_pre"})
+      print('######')
+      SSP1_pre_jul = SSP1_BCor_pre.sel(month=7)
+      SSP1_pre_jul_df= SSP1_pre_jul.to_dataframe()
+      SSP1_pre_jul_df = SSP1_pre_jul_df.drop(["month"], axis=1).rename(columns={"mean monthly precipitation (mm)": "Jul_pre"})
+      print('#######')
+      SSP1_pre_aug = SSP1_BCor_pre.sel(month=8)
+      SSP1_pre_aug_df= SSP1_pre_aug.to_dataframe()
+      SSP1_pre_aug_df = SSP1_pre_aug_df.drop(["month"], axis=1).rename(columns={"mean monthly precipitation (mm)": "Aug_pre"})
+      print('########')
+      SSP1_pre_sep = SSP1_BCor_pre.sel(month=9)
+      SSP1_pre_sep_df= SSP1_pre_sep.to_dataframe()
+      SSP1_pre_sep_df = SSP1_pre_sep_df.drop(["month"], axis=1).rename(columns={"mean monthly precipitation (mm)": "Sep_pre"})
+      print('#########')
+      SSP1_pre_oct = SSP1_BCor_pre.sel(month=10)
+      SSP1_pre_oct_df= SSP1_pre_oct.to_dataframe()
+      SSP1_pre_oct_df = SSP1_pre_oct_df.drop(["month"], axis=1).rename(columns={"mean monthly precipitation (mm)": "Oct_pre"})
+      print('##########')
+      SSP1_pre_nov = SSP1_BCor_pre.sel(month=11)
+      SSP1_pre_nov_df= SSP1_pre_nov.to_dataframe()
+      SSP1_pre_nov_df = SSP1_pre_nov_df.drop(["month"], axis=1).rename(columns={"mean monthly precipitation (mm)": "Nov_preT"})
+      print('###########')
+      SSP1_pre_dec = SSP1_BCor_pre.sel(month=12)
+      SSP1_pre_dec_df= SSP1_pre_dec.to_dataframe()
+      SSP1_pre_dec_df = SSP1_pre_dec_df.drop(["month"], axis=1).rename(columns={"mean monthly precipitation (mm)": "Dec_pre"})
+      print('############')
+      SSP1_pre_df = pd.concat([SSP1_pre_jan_df, SSP1_pre_feb_df, SSP1_pre_mar_df, SSP1_pre_apr_df, SSP1_pre_may_df, SSP1_pre_jun_df, SSP1_pre_jul_df, SSP1_pre_aug_df, SSP1_pre_sep_df, SSP1_pre_oct_df, SSP1_pre_nov_df, SSP1_pre_dec_df], axis=1) # add each variable as a column
+      SSP1_pre_df = SSP1_pre_df.reset_index() # add id column
+      SSP1_pre_df.index = SSP1_pre_df.index + 1 # start id index at 1, not 0
+      SSP1_pre_df.to_csv(pre_DIR+'bcor_SSP1.csv')
+      print('SSP1_pre.csv complete')
 
 
-      # SSP1 pre
+# SSP2 pre
+      SSP2_pre_jan = SSP2_BCor_pre.sel(month=1) # select pre data from the first month
+      SSP2_pre_jan_df= SSP2_pre_jan.to_dataframe() # turn this data into a pandas dataframe
+      SSP2_pre_jan_df = SSP2_pre_jan_df.drop(["month"], axis=1).rename(columns={"mean monthly precipitation (mm)": "Jan_pre"}) # drop unnecessary columns, rename variable columns to month
+      print('#')
+      SSP2_pre_feb = SSP2_BCor_pre.sel(month=2)
+      SSP2_pre_feb_df= SSP2_pre_feb.to_dataframe()
+      SSP2_pre_feb_df = SSP2_pre_feb_df.drop(["month"], axis=1).rename(columns={"mean monthly precipitation (mm)": "Feb_pre"})
+      print('##')
+      SSP2_pre_mar = SSP2_BCor_pre.sel(month=3)
+      SSP2_pre_mar_df= SSP2_pre_mar.to_dataframe()
+      SSP2_pre_mar_df = SSP2_pre_mar_df.drop(["month"], axis=1).rename(columns={"mean monthly precipitation (mm)": "Mar_pre"})
+      print('###')
+      SSP2_pre_apr = SSP2_BCor_pre.sel(month=4)
+      SSP2_pre_apr_df= SSP2_pre_apr.to_dataframe()
+      SSP2_pre_apr_df = SSP2_pre_apr_df.drop(["month"], axis=1).rename(columns={"mean monthly precipitation (mm)": "Apr_pre"})
+      print('####')
+      SSP2_pre_may = SSP2_BCor_pre.sel(month=5)
+      SSP2_pre_may_df= SSP2_pre_may.to_dataframe()
+      SSP2_pre_may_df = SSP2_pre_may_df.drop(["month"], axis=1).rename(columns={"mean monthly precipitation (mm)": "May_pre"})
+      print('#####')
+      SSP2_pre_jun = SSP2_BCor_pre.sel(month=6)
+      SSP2_pre_jun_df= SSP2_pre_jun.to_dataframe()
+      SSP2_pre_jun_df = SSP2_pre_jun_df.drop(["month"], axis=1).rename(columns={"mean monthly precipitation (mm)": "Jun_pre"})
+      print('######')
+      SSP2_pre_jul = SSP2_BCor_pre.sel(month=7)
+      SSP2_pre_jul_df= SSP2_pre_jul.to_dataframe()
+      SSP2_pre_jul_df = SSP2_pre_jul_df.drop(["month"], axis=1).rename(columns={"mean monthly precipitation (mm)": "Jul_pre"})
+      print('#######')
+      SSP2_pre_aug = SSP2_BCor_pre.sel(month=8)
+      SSP2_pre_aug_df= SSP2_pre_aug.to_dataframe()
+      SSP2_pre_aug_df = SSP2_pre_aug_df.drop(["month"], axis=1).rename(columns={"mean monthly precipitation (mm)": "Aug_pre"})
+      print('########')
+      SSP2_pre_sep = SSP2_BCor_pre.sel(month=9)
+      SSP2_pre_sep_df= SSP2_pre_sep.to_dataframe()
+      SSP2_pre_sep_df = SSP2_pre_sep_df.drop(["month"], axis=1).rename(columns={"mean monthly precipitation (mm)": "Sep_pre"})
+      print('#########')
+      SSP2_pre_oct = SSP2_BCor_pre.sel(month=10)
+      SSP2_pre_oct_df= SSP2_pre_oct.to_dataframe()
+      SSP2_pre_oct_df = SSP2_pre_oct_df.drop(["month"], axis=1).rename(columns={"mean monthly precipitation (mm)": "Oct_pre"})
+      print('##########')
+      SSP2_pre_nov = SSP2_BCor_pre.sel(month=11)
+      SSP2_pre_nov_df= SSP2_pre_nov.to_dataframe()
+      SSP2_pre_nov_df = SSP2_pre_nov_df.drop(["month"], axis=1).rename(columns={"mean monthly precipitation (mm)": "Nov_pre"})
+      print('###########')
+      SSP2_pre_dec = SSP2_BCor_pre.sel(month=12)
+      SSP2_pre_dec_df= SSP2_pre_dec.to_dataframe()
+      SSP2_pre_dec_df = SSP2_pre_dec_df.drop(["month"], axis=1).rename(columns={"mean monthly precipitation (mm)": "Dec_pre"})
+      print('############')
+      SSP2_pre_df = pd.concat([SSP2_pre_jan_df, SSP2_pre_feb_df, SSP2_pre_mar_df, SSP2_pre_apr_df, SSP2_pre_may_df, SSP2_pre_jun_df, SSP2_pre_jul_df, SSP2_pre_aug_df, SSP2_pre_sep_df, SSP2_pre_oct_df, SSP2_pre_nov_df, SSP2_pre_dec_df], axis=1) # add each variable as a column
+      SSP2_pre_df = SSP2_pre_df.reset_index() # add id column
+      SSP2_pre_df.index = SSP2_pre_df.index + 1 # start id index at 1, not 0
+      SSP2_pre_df.to_csv(pre_DIR+'bcor_SSP2.csv')
+      print('SSP2_pre.csv complete')
 
 
-      # SSP2 pre
+# SSP3 pre
+      SSP3_pre_jan = SSP3_BCor_pre.sel(month=1) # select pre data from the first month
+      SSP3_pre_jan_df= SSP3_pre_jan.to_dataframe() # turn this data into a pandas dataframe
+      SSP3_pre_jan_df = SSP3_pre_jan_df.drop(["month"], axis=1).rename(columns={"mean monthly precipitation (mm)": "Jan_pre"}) # drop unnecessary columns, rename variable columns to month
+      print('#')
+      SSP3_pre_feb = SSP3_BCor_pre.sel(month=2)
+      SSP3_pre_feb_df= SSP3_pre_feb.to_dataframe()
+      SSP3_pre_feb_df = SSP3_pre_feb_df.drop(["month"], axis=1).rename(columns={"mean monthly precipitation (mm)": "Feb_pre"})
+      print('##')
+      SSP3_pre_mar = SSP3_BCor_pre.sel(month=3)
+      SSP3_pre_mar_df= SSP3_pre_mar.to_dataframe()
+      SSP3_pre_mar_df = SSP3_pre_mar_df.drop(["month"], axis=1).rename(columns={"mean monthly precipitation (mm)": "Mar_pre"})
+      print('###')
+      SSP3_pre_apr = SSP3_BCor_pre.sel(month=4)
+      SSP3_pre_apr_df= SSP3_pre_apr.to_dataframe()
+      SSP3_pre_apr_df = SSP3_pre_apr_df.drop(["month"], axis=1).rename(columns={"mean monthly precipitation (mm)": "Apr_pre"})
+      print('####')
+      SSP3_pre_may = SSP3_BCor_pre.sel(month=5)
+      SSP3_pre_may_df= SSP3_pre_may.to_dataframe()
+      SSP3_pre_may_df = SSP3_pre_may_df.drop(["month"], axis=1).rename(columns={"mean monthly precipitation (mm)": "May_pre"})
+      print('#####')
+      SSP3_pre_jun = SSP3_BCor_pre.sel(month=6)
+      SSP3_pre_jun_df= SSP3_pre_jun.to_dataframe()
+      SSP3_pre_jun_df = SSP3_pre_jun_df.drop(["month"], axis=1).rename(columns={"mean monthly precipitation (mm)": "Jun_pre"})
+      print('######')
+      SSP3_pre_jul = SSP3_BCor_pre.sel(month=7)
+      SSP3_pre_jul_df= SSP3_pre_jul.to_dataframe()
+      SSP3_pre_jul_df = SSP3_pre_jul_df.drop(["month"], axis=1).rename(columns={"mean monthly precipitation (mm)": "Jul_pre"})
+      print('#######')
+      SSP3_pre_aug = SSP3_BCor_pre.sel(month=8)
+      SSP3_pre_aug_df= SSP3_pre_aug.to_dataframe()
+      SSP3_pre_aug_df = SSP3_pre_aug_df.drop(["month"], axis=1).rename(columns={"mean monthly precipitation (mm)": "Aug_pre"})
+      print('########')
+      SSP3_pre_sep = SSP3_BCor_pre.sel(month=9)
+      SSP3_pre_sep_df= SSP3_pre_sep.to_dataframe()
+      SSP3_pre_sep_df = SSP3_pre_sep_df.drop(["month"], axis=1).rename(columns={"mean monthly precipitation (mm)": "Sep_pre"})
+      print('#########')
+      SSP3_pre_oct = SSP3_BCor_pre.sel(month=10)
+      SSP3_pre_oct_df= SSP3_pre_oct.to_dataframe()
+      SSP3_pre_oct_df = SSP3_pre_oct_df.drop(["month"], axis=1).rename(columns={"mean monthly precipitation (mm)": "Oct_pre"})
+      print('##########')
+      SSP3_pre_nov = SSP3_BCor_pre.sel(month=11)
+      SSP3_pre_nov_df= SSP3_pre_nov.to_dataframe()
+      SSP3_pre_nov_df = SSP3_pre_nov_df.drop(["month"], axis=1).rename(columns={"mean monthly precipitation (mm)": "Nov_pre"})
+      print('###########')
+      SSP3_pre_dec = SSP3_BCor_pre.sel(month=12)
+      SSP3_pre_dec_df= SSP3_pre_dec.to_dataframe()
+      SSP3_pre_dec_df = SSP3_pre_dec_df.drop(["month"], axis=1).rename(columns={"mean monthly precipitation (mm)": "Dec_pre"})
+      print('############')
+      SSP3_pre_df = pd.concat([SSP3_pre_jan_df, SSP3_pre_feb_df, SSP3_pre_mar_df, SSP3_pre_apr_df, SSP3_pre_may_df, SSP3_pre_jun_df, SSP3_pre_jul_df, SSP3_pre_aug_df, SSP3_pre_sep_df, SSP3_pre_oct_df, SSP3_pre_nov_df, SSP3_pre_dec_df], axis=1) # add each variable as a column
+      SSP3_pre_df = SSP3_pre_df.reset_index() # add id column
+      SSP3_pre_df.index = SSP3_pre_df.index + 1 # start id index at 1, not 0
+      SSP3_pre_df.to_csv(pre_DIR+'bcor_SSP3.csv')
+      print('SSP3_pre.csv complete')
 
 
-      # SSP3 pre
+# SSP5 pre
+      SSP5_pre_jan = SSP5_BCor_pre.sel(month=1) # select pre data from the first month
+      SSP5_pre_jan_df= SSP5_pre_jan.to_dataframe() # turn this data into a pandas dataframe
+      SSP5_pre_jan_df = SSP5_pre_jan_df.drop(["month"], axis=1).rename(columns={"mean monthly precipitation (mm)": "Jan_pre"}) # drop unnecessary columns, rename variable columns to month
+      print('#')
+      SSP5_pre_feb = SSP5_BCor_pre.sel(month=2)
+      SSP5_pre_feb_df= SSP5_pre_feb.to_dataframe()
+      SSP5_pre_feb_df = SSP5_pre_feb_df.drop(["month"], axis=1).rename(columns={"mean monthly precipitation (mm)": "Feb_pre"})
+      print('##')
+      SSP5_pre_mar = SSP5_BCor_pre.sel(month=3)
+      SSP5_pre_mar_df= SSP5_pre_mar.to_dataframe()
+      SSP5_pre_mar_df = SSP5_pre_mar_df.drop(["month"], axis=1).rename(columns={"mean monthly precipitation (mm)": "Mar_pre"})
+      print('###')
+      SSP5_pre_apr = SSP5_BCor_pre.sel(month=4)
+      SSP5_pre_apr_df= SSP5_pre_apr.to_dataframe()
+      SSP5_pre_apr_df = SSP5_pre_apr_df.drop(["month"], axis=1).rename(columns={"mean monthly precipitation (mm)": "Apr_pre"})
+      print('####')
+      SSP5_pre_may = SSP5_BCor_pre.sel(month=5)
+      SSP5_pre_may_df= SSP5_pre_may.to_dataframe()
+      SSP5_pre_may_df = SSP5_pre_may_df.drop(["month"], axis=1).rename(columns={"mean monthly precipitation (mm)": "May_pre"})
+      print('#####')
+      SSP5_pre_jun = SSP5_BCor_pre.sel(month=6)
+      SSP5_pre_jun_df= SSP5_pre_jun.to_dataframe()
+      SSP5_pre_jun_df = SSP5_pre_jun_df.drop(["month"], axis=1).rename(columns={"mean monthly precipitation (mm)": "Jun_pre"})
+      print('######')
+      SSP5_pre_jul = SSP5_BCor_pre.sel(month=7)
+      SSP5_pre_jul_df= SSP5_pre_jul.to_dataframe()
+      SSP5_pre_jul_df = SSP5_pre_jul_df.drop(["month"], axis=1).rename(columns={"mean monthly precipitation (mm)": "Jul_pre"})
+      print('#######')
+      SSP5_pre_aug = SSP5_BCor_pre.sel(month=8)
+      SSP5_pre_aug_df= SSP5_pre_aug.to_dataframe()
+      SSP5_pre_aug_df = SSP5_pre_aug_df.drop(["month"], axis=1).rename(columns={"mean monthly precipitation (mm)": "Aug_pre"})
+      print('########')
+      SSP5_pre_sep = SSP5_BCor_pre.sel(month=9)
+      SSP5_pre_sep_df= SSP5_pre_sep.to_dataframe()
+      SSP5_pre_sep_df = SSP5_pre_sep_df.drop(["month"], axis=1).rename(columns={"mean monthly precipitation (mm)": "Sep_pre"})
+      print('#########')
+      SSP5_pre_oct = SSP5_BCor_pre.sel(month=10)
+      SSP5_pre_oct_df= SSP5_pre_oct.to_dataframe()
+      SSP5_pre_oct_df = SSP5_pre_oct_df.drop(["month"], axis=1).rename(columns={"mean monthly precipitation (mm)": "Oct_pre"})
+      print('##########')
+      SSP5_pre_nov = SSP5_BCor_pre.sel(month=11)
+      SSP5_pre_nov_df= SSP5_pre_nov.to_dataframe()
+      SSP5_pre_nov_df = SSP5_pre_nov_df.drop(["month"], axis=1).rename(columns={"mean monthly precipitation (mm)": "Nov_pre"})
+      print('###########')
+      SSP5_pre_dec = SSP5_BCor_pre.sel(month=12)
+      SSP5_pre_dec_df= SSP5_pre_dec.to_dataframe()
+      SSP5_pre_dec_df = SSP5_pre_dec_df.drop(["month"], axis=1).rename(columns={"mean monthly precipitation (mm)": "Dec_pre"})
+      print('############')
+      SSP5_pre_df = pd.concat([SSP5_pre_jan_df, SSP5_pre_feb_df, SSP5_pre_mar_df, SSP5_pre_apr_df, SSP5_pre_may_df, SSP5_pre_jun_df, SSP5_pre_jul_df, SSP5_pre_aug_df, SSP5_pre_sep_df, SSP5_pre_oct_df, SSP5_pre_nov_df, SSP5_pre_dec_df], axis=1) # add each variable as a column
+      SSP5_pre_df = SSP5_pre_df.reset_index() # add id column
+      SSP5_pre_df.index = SSP5_pre_df.index + 1 # start id index at 1, not 0
+      SSP5_pre_df.to_csv(pre_DIR+'bcor_SSP5.csv')
+      print('SSP5_pre.csv complete')
 
-
-
-      # SSP5 pre
-
-
-      
+ # Turn warnings back on
+      np.warnings.filterwarnings('default')
+ # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #    
+     
 elif answer.lower().startswith("n"):
     pass
 else:
         print("Enter either yes/no")
 
 print('Step 8: Data Export complete')
-#########################################
+################################################################################################################################
 print('End.')
 sys.exit()
