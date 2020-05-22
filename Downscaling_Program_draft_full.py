@@ -2,10 +2,13 @@
 ########################################################################################################
 """
 Program: Downscaling Program Full
-
-Author: Richard Fewster
+Description: This program reads in CMIP6 climate netcdf files, slices them to time periods of interest, calculates monthly means, and then
+downscales and bias-corrects the outputs following the method of Morris et al. (2018). Functions are included for the export of this data to
+csv and netcdf format. 
+References: Morris, P.J., Swindles, G.T., Valdes, P.J., Ivanovic, R.F., Gregoire, L.J., Smith, M.W., Tarasov, L., Haywood, A.M. and Bacon, K.L., 2018. Global peatland initiation driven by regionally asynchronous warming. Proceedings of the National Academy of Sciences, 115(19), pp.4851-4856.
+Author: Richard Fewster (gy15ref@leeds.ac.uk)
 Start Date: 30/04/2020
-Most Recent Update: 20/05/2020
+Most Recent Update: 21/05/2020
 
 """
 ########################################################################################################
