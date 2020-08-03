@@ -82,10 +82,10 @@ STEP 3: (OPTIONAL) CROP TO REGION OF INTEREST
 answer = input('(OPTIONAL) Crop output to study region?:')
 if answer.lower().startswith("y"):
       # Temperature
-      CRU_tmp_xr = CRU_tmp_xr.sel(lat=slice(50., 90.))
+      CRU_tmp_xr = CRU_tmp_xr.sel(lat=slice(44., 90.))
 
       # Preciptiation
-      CRU_pre_xr = CRU_pre_xr.sel(lat=slice(50., 90.))
+      CRU_pre_xr = CRU_pre_xr.sel(lat=slice(44., 90.))
       
       tmp_DIR= tmp_DIR+'sliced'
       pre_DIR= pre_DIR+'sliced'
@@ -250,7 +250,7 @@ if answer.lower().startswith("y"):
       hist_pre_df = pd.concat([hist_pre_jan_df, hist_pre_feb_df, hist_pre_mar_df, hist_pre_apr_df, hist_pre_may_df, hist_pre_jun_df, hist_pre_jul_df, hist_pre_aug_df, hist_pre_sep_df, hist_pre_oct_df, hist_pre_nov_df, hist_pre_dec_df], axis=1) # add each variable as a column
       hist_pre_df = hist_pre_df.reset_index() # add id column
       hist_pre_df.index = hist_pre_df.index + 1 # start id index at 1, not 0
-      hist_pre_df.to_csv(pre_DIR+'csv')
+      hist_pre_df.to_csv(pre_DIR+'.csv')
       print('CRU_1961_1990_pre.csv complete')
        # Turn warnings back on
       np.warnings.filterwarnings('default')
